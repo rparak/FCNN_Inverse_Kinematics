@@ -24,9 +24,12 @@ Description:
 """
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
-
-# ....
-CONST_DATASET_CONFIG = {'Number_of_Data': 100, 'Type': 1, 'Id': [0, 1, 2]}
+# Dataset configuration.
+#   Type: 
+#       Type of dataset.
+#   Num_of_Data: 
+#       Number of data to be generated.
+CONST_DATASET_CONFIG = {'Type': 1, 'Number_of_Data': 100}
 
 def main():
     """
@@ -40,26 +43,48 @@ def main():
     # Initialization of the structure of the main parameters of the robot.
     Robot_Str = CONST_ROBOT_TYPE
 
-    file_path = []
-    for _, id_i in enumerate(CONST_DATASET_CONFIG['Id']):
-        file_path_tmp = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{CONST_DATASET_CONFIG['Type']}/Config_N_{CONST_DATASET_CONFIG['Number_of_Data']}_ID_{id_i}"
+    file_path = []; N_nn = 1 if CONST_DATASET_CONFIG['Type'] == 1 else 2
+    for i in range(N_nn):
+        # Create a file path to save the data.
+        file_path_tmp = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{CONST_DATASET_CONFIG['Type']}/Config_N_{CONST_DATASET_CONFIG['Number_of_Data']}_ID_{i}"
 
         # Remove the '*.urdf' file if it already exists.
-        if os.path.isfile(f'{file_path_tmp}.txt'):
-            os.remove(f'{file_path_tmp}.txt')
+        if os.path.isfile(f'{file_path_tmp}.pkl'):
+            os.remove(f'{file_path_tmp}.pkl')
 
-        # Create a file path to save the data.
+        # Store the path to the file.
         file_path.append(file_path_tmp)
+
 
     # Start the timer.
     t_0 = time.time()
 
-    # ...
-    theta_rand = np.round(np.float32(np.random.uniform(Robot_Str.Theta.Limit[:, 0], Robot_Str.Theta.Limit[:, 1])), 
-                          decimals=4)
+    i = 0; data_1 = []; data_2 = []
+    while CONST_DATASET_CONFIG['Number_of_Data'] > i:
+        # ...
+        theta_rand = np.random.uniform(Robot_Str.Theta.Limit[:, 0], Robot_Str.Theta.Limit[:, 1])
+        
+        # ...
+        T_rand = Kinematics.Forward_Kinematics(theta_rand, 'Fast', Robot_Str)[1]
 
-    # Save the data to the file.
-    # ...
+        # ...
+        if N_nn == 1:
+            # ...
+            data_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                    theta_rand))
+        else:
+            if CONST_DATASET_CONFIG['Type'] == 2:
+                # ...
+                pass
+            elif CONST_DATASET_CONFIG['Type'] == 3:
+                # ...
+                pass
+
+        i += 1
+
+    for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_1, data_2])):
+        # Save the data to the file.
+        File_IO.Save(file_path_i, data_i, 'pkl', ',')
 
     # Display information.
     print('[INFO] The data generation has been successfully completed.')

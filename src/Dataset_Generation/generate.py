@@ -67,6 +67,7 @@ def main():
         # ...
         T_rand = Kinematics.Forward_Kinematics(theta_rand, 'Fast', Robot_Str)[1]
 
+        print(theta_rand[Robot_Str.Theta.Zero.size - 1])
         # ...
         if N_nn == 1:
             # ...
@@ -75,16 +76,23 @@ def main():
         else:
             if CONST_DATASET_CONFIG['Type'] == 2:
                 # ...
-                pass
+                data_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                        theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
+                data_2.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                        theta_rand[Robot_Str.Theta.Zero.size - 1]))
             elif CONST_DATASET_CONFIG['Type'] == 3:
                 # ...
-                pass
+                data_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                        theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
+                data_2.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                        theta_rand))
 
         i += 1
 
     for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_1, data_2])):
         # Save the data to the file.
-        File_IO.Save(file_path_i, data_i, 'pkl', ',')
+        #File_IO.Save(file_path_i, data_i, 'pkl', ',')
+        pass
 
     # Display information.
     print('[INFO] The data generation has been successfully completed.')

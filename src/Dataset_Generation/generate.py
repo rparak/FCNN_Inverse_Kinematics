@@ -35,10 +35,31 @@ CONST_NUM_OF_DATASET_TYPES = 2
 #           Index 1: Dataset Type 2
 CONST_NUM_OF_DATASETS = [1, 2]
 
+# Without the last absolute position of the joint.
+
 def main():
     """
     Description:
-        ...
+        The main program that generates the dataset of the selected robotic structure.
+
+        The program creates two types of datasets, which are described below.
+            Dataset Type 1.
+                DNN ID 0:
+                    Input of the NN:  x -> Position(x, y, z); Orientation(quaternion)
+                    Output of the NN: y -> theta(0 .. n)
+            Dataset Type 2.
+                DNN ID 0:
+                    Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
+                    Output of the NN: y -> theta(0 .. n - 1) 
+                DNN ID 1:
+                    Input of the NN:  x -> Position(x, y, z), Orientation(quaternion), theta(0 .. n - 1)
+                    Output of the NN: y -> theta(n),
+            
+            Where n is the number of absolute joint positions.
+
+        Note:
+            The structures of the robot are defined below:
+                ../Parameters/Robot.py
     """
 
     # Locate the path to the project folder.
@@ -47,11 +68,10 @@ def main():
     # Initialization of the structure of the main parameters of the robot.
     Robot_Str = CONST_ROBOT_TYPE
 
-    # ...
+    # Create a file path to save the data.
     file_path = []
     for i in range(CONST_NUM_OF_DATASET_TYPES):
         for j in range(CONST_NUM_OF_DATASETS[i]):
-            # Create a file path to save the data.
             file_path_tmp = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{i + 1}/Config_N_{CONST_NUM_OF_DATA}_ID_{j}"
 
             # Remove the '*.urdf' file if it already exists.
@@ -64,22 +84,28 @@ def main():
     # Start the timer.
     t_0 = time.time()
 
+    # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
     i = 0; data_t_1 = []; data_t_2_1 = []; data_t_2_2 = []
     while CONST_NUM_OF_DATA > i:
-        # ...
+        # Random generation of absolute joint orientations.
+        #   Note:
+        #       The boundaries of the random generation are defined in the object structure.
         theta_rand = np.random.uniform(Robot_Str.Theta.Limit[:, 0], Robot_Str.Theta.Limit[:, 1])
         
-        # ...
+        # Obtain the homogeneous transformation matrix using forward kinematics.
         T_rand = Kinematics.Forward_Kinematics(theta_rand, 'Fast', Robot_Str)[1]
 
-
-        # ...
+        # Store the acquired data.
+        #   Dataset Type 1.
+        #       ID 0.   
         data_t_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
                                 theta_rand))
         
-        # ...
+        #   Dataset Type 2.
+        #       ID 0.
         data_t_2_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
                                 theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
+        #       ID 1.
         data_t_2_2.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
                                 theta_rand))
 

@@ -19,7 +19,7 @@ def Scale_Data(range: tp.List[float], data: tp.List[float]) -> tp.Tuple[sklearn.
         (2) parameter 2 [Vector<float>]: Output transformed (scaled) data.
     """
 
-    scaler = sklearn.preprocessing.MinMaxScaler(feature_range=range)
+    scaler = sklearn.preprocessing.MinMaxScaler(feature_range=(range[0], range[1]))
 
     return (scaler, scaler.fit_transform(data))
 

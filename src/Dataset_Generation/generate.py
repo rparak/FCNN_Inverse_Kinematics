@@ -35,7 +35,6 @@ CONST_NUM_OF_DATASET_TYPES = 2
 #           Index 1: Dataset Type 2
 CONST_NUM_OF_DATASETS = [1, 2]
 
-# Without the last absolute position of the joint.
 
 def main():
     """
@@ -53,7 +52,7 @@ def main():
                     Output of the NN: y -> theta(0 .. n - 1) 
                 DNN ID 1:
                     Input of the NN:  x -> Position(x, y, z), Orientation(quaternion), theta(0 .. n - 1)
-                    Output of the NN: y -> theta(n),
+                    Output of the NN: y -> theta(n)
             
             Where n is the number of absolute joint positions.
 
@@ -104,10 +103,10 @@ def main():
         #   Dataset Type 2.
         #       ID 0.
         data_t_2_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
+                                    theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
         #       ID 1.
         data_t_2_2.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                theta_rand))
+                                    theta_rand))
 
         i += 1
 

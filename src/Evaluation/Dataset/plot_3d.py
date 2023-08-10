@@ -46,8 +46,8 @@ def main():
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
 
-    # Create a file path to save the data.
-    file_path = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_1/Config_N_{CONST_NUM_OF_DATA}_ID_0"
+    # Create a file path to read the data.
+    file_path = f'{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_1/Config_N_{CONST_NUM_OF_DATA}_ID_0'
     
     # Read the data from a file.
     data = File_IO.Load(file_path, 'pkl', ',')

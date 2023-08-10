@@ -28,7 +28,7 @@ def Load(file_path: str, format: str, separator: str) -> tp.List[tp.Union[float,
         # Open the file in 'rb' mode (read binary). 
         with open(file_path + f'.{format}', 'rb') as f:
             # Load the data from the file using the file object (f).
-            data = pkl.load(f)
+            data_tmp = pkl.load(f)
 
     elif format == 'txt':
         data_tmp = []
@@ -39,8 +39,8 @@ def Load(file_path: str, format: str, separator: str) -> tp.List[tp.Union[float,
                 # and converts to a float.
                 data_tmp.append(np.float32(line.split(separator)))
 
-        # Convert a list to an array.
-        data = np.array(data_tmp, dtype=np.float32)
+    # Convert a list to an array.
+    data = np.array(data_tmp, dtype=np.float32)
     
     # Close the file after loading the data.
     f.close()

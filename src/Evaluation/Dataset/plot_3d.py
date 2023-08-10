@@ -61,7 +61,7 @@ def main():
 
     # Plot the robot's dataset dependent on the input data from the file.
     ax.plot(np.round(x, 4), np.round(y, 4), np.round(z, 4), 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0],
-            label=f'3D positions (x, y, z): N = {CONST_NUM_OF_DATA}')
+            label=f'3D Positions (x, y, z): N = {CONST_NUM_OF_DATA}')
 
     # Set parameters of the graph (plot).
     ax.set_title(f'The Dataset of a {Robot_Str.Theta.Zero.size}-axis robotic arm {Robot_Str.Name}', fontsize=25, pad=25.0)

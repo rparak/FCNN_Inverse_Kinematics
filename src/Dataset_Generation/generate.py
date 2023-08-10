@@ -99,7 +99,6 @@ def main():
         #       ID 0.   
         data_t_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
                                 theta_rand))
-        
         #   Dataset Type 2.
         #       ID 0.
         data_t_2_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 

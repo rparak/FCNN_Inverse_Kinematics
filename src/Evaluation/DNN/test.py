@@ -59,7 +59,7 @@ def main():
     """
 
     # Time in seconds.
-    t = np.linspace(CONST_T_0, CONST_T_1, np.int32((CONST_T_1 - CONST_T_0) * CONST_FPS))
+    t = np.linspace(CONST_T_0, CONST_T_1, 100)
 
     y = smooth_interpolate_angle(0.0, Mathematics.Degree_To_Radian(90.0), t)
 
@@ -70,7 +70,7 @@ def main():
     _, ax = plt.subplots()
 
     # ...
-    ax.plot(y, '--o', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
+    ax.plot(t, y, '--o', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
             markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='...')
 
     # Show the result.

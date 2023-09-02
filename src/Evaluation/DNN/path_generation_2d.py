@@ -48,7 +48,6 @@ def main():
     # Time in seconds.
     t = np.linspace(CONST_T_0, CONST_T_1, np.int32((CONST_T_1 - CONST_T_0) * CONST_FPS))
 
-
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
 

@@ -94,18 +94,27 @@ def main():
         # Obtain the homogeneous transformation matrix using forward kinematics.
         T_rand = Kinematics.Forward_Kinematics(theta_rand, 'Fast', Robot_Str)[1]
 
+        # Data structure.
+        #   Position (p), orientation (quaternion) and absolute position of the joint (theta).
+        data_i = np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                     theta_rand)
+  
+        """
+        if data_t_1 != []:
+            for _, x_i in enumerate(data_t_1):
+                if all(x == y for _, (x, y) in enumerate(zip(data_i, x_i[0:7]))):
+                    print('Yes')
+        """
+
         # Store the acquired data.
         #   Dataset Type 1.
         #       ID 0.   
-        data_t_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                theta_rand))
+        data_t_1.append(data_i)
         #   Dataset Type 2.
         #       ID 0.
-        data_t_2_1.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                    theta_rand[0:Robot_Str.Theta.Zero.size - 1]))
+        data_t_2_1.append(data_i[0:-1])
         #       ID 1.
-        data_t_2_2.append(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                    theta_rand))
+        data_t_2_2.append(data_i)
 
         i += 1
 

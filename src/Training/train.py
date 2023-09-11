@@ -16,6 +16,10 @@ import Lib.Parameters.Robot as Parameters
 import Lib.Utilities.File_IO as File_IO
 #   ../Lib/DNN_IK/Utilities
 import Lib.DNN_IK.Utilities as Utilities
+#   ../Lib/DNN_IK/Parameters
+import Lib.DNN_IK.Parameters
+#   ../Lib/DNN_IK/Model
+import Lib.DNN_IK.Model
 
 """
 Description:
@@ -27,9 +31,9 @@ CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 #   Number of data to be generated.
 CONST_NUM_OF_DATA = 1000
 #   Type of the dataset.
-CONST_DATASET_TYPE = 2
+CONST_DATASET_TYPE = 1
 #   The ID of the dataset in the selected type.
-CONST_DATASET_ID = 1
+CONST_DATASET_ID = 0
 
 def main():
     """
@@ -53,17 +57,17 @@ def main():
     if CONST_DATASET_TYPE == 1:
         #   Input of the NN:  x -> Position(x, y, z); Orientation(quaternion)
         #   Output of the NN: y -> theta(0 .. n)
-        x = data[:, 0:7].astype('float32'); y = data[:, 7:Robot_Str.Theta.Zero.size].astype('float32')
+        x = data[:, 0:7].astype('float32'); y = data[:, -Robot_Str.Theta.Zero.size:].astype('float32')
     else:
         if CONST_DATASET_ID == 0:
             # Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
             # Output of the NN: y -> theta(0 .. n - 1) 
-            x = data[:, 0:7].astype('float32'); y = data[:, 7::].astype('float32')
+            x = data[:, 0:7].astype('float32'); y = data[:, 7:-1].astype('float32')
         else:
             # Input of the NN:  x -> Position(x, y, z), Orientation(quaternion), theta(0 .. n - 1)
             # Output of the NN: y -> theta(n)
-            x = data[:, 0:(7 + (Robot_Str.Theta.Zero.size - 1))].astype('float32')
-            y = data[:, Robot_Str.Theta.Zero.size].astype('float32').reshape(-1, 1)
+            x = data[:, 0:-1].astype('float32')
+            y = data[:, -1].astype('float32').reshape(-1, 1)
 
     # Split the data from the dataset (x, y) into random train and test subsets.
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, train_size=0.9, test_size=0.1, 
@@ -80,5 +84,35 @@ def main():
     # Save the scaler parameter for input/output data.
     #joblib.dump(scaler_x, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_x.pkl')
     #joblib.dump(scaler_y, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_y.pkl')
+
+    import tensorflow as tf
+
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(32,input_shape=(7,)))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(150))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(75))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(50))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(25))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(10))
+    model.add(tf.keras.layers.Activation('tanh'))
+    model.add(tf.keras.layers.Dropout(0.05))
+    model.add(tf.keras.layers.Dense(4))
+    model.add(tf.keras.layers.Activation('tanh'))
+
+    # Generate network
+    opt = tf.keras.optimizers.experimental.RMSprop(learning_rate=0.001, rho=0.9, epsilon=1e-06)
+    model.compile(optimizer=opt, loss='mse')
+    model.fit(x_train_scaled, y_train_scaled, epochs=10000, batch_size=128, validation_data=(x_test_transformed, y_test_transformed))
+
 if __name__ == "__main__":
     sys.exit(main())

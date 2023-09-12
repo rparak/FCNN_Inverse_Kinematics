@@ -50,6 +50,17 @@ def main():
     # Create a file path to read the data.
     file_path = f'{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}'
     
+    import tensorflow as tf
+
+    # Check for GPU availability
+    if tf.config.experimental.list_physical_devices('GPU'):
+        # Initialize a TensorFlow session
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    else:
+        print("No GPU devices found.")
+
     # Read the data from a file.
     data = File_IO.Load(file_path, 'pkl', ',')
 
@@ -85,35 +96,33 @@ def main():
     #joblib.dump(scaler_x, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_x.pkl')
     #joblib.dump(scaler_y, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_y.pkl')
 
-    import tensorflow as tf
 
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Dense(32,input_shape=(7,)))
+    model.add(tf.keras.layers.Dense(32,input_shape=(7,), activation=None, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(64))
+    model.add(tf.keras.layers.Dropout(0.01))
+    model.add(tf.keras.layers.Dense(64, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(128))
+    model.add(tf.keras.layers.Dropout(0.01))
+    model.add(tf.keras.layers.Dense(128, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(128))
+    model.add(tf.keras.layers.Dropout(0.01))
+    model.add(tf.keras.layers.Dense(64, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(64))
+    model.add(tf.keras.layers.Dropout(0.01))
+    model.add(tf.keras.layers.Dense(32, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(32))
-    model.add(tf.keras.layers.Activation(tf.nn.tanh))
-    model.add(tf.keras.layers.Dropout(0.05))
-    model.add(tf.keras.layers.Dense(4))
+    model.add(tf.keras.layers.Dropout(0.01))
+    model.add(tf.keras.layers.Dense(4, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
 
     # Generate network
-    #opt = tf.keras.optimizers.experimental.RMSprop(learning_rate=0.001, rho=0.9, epsilon=1e-06)
-    opt = tf.keras.optimizers.Adam(learning_rate=0.001, epsilon=1e-06)
-    model.compile(optimizer=opt, loss='mse')
-    model.fit(x_train_scaled, y_train_scaled, epochs=1000, batch_size=128, validation_data=(x_test_transformed, y_test_transformed))
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-03, epsilon=1e-06), loss='mse', 
+                  metrics=['accuracy', 'mse'])
+    model.fit(x_train_scaled, y_train_scaled, epochs=1000, batch_size=64, verbose=1, validation_data=(x_test_transformed, y_test_transformed))
+
+    # Release the GPU resources when done
+    tf.keras.backend.clear_session()
 
 if __name__ == "__main__":
     sys.exit(main())

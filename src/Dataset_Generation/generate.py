@@ -26,7 +26,7 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 100
 #   Number of dataset types.
 CONST_NUM_OF_DATASET_TYPES = 2
 #   The number of datasets in each type.
@@ -84,7 +84,7 @@ def main():
     t_0 = time.time()
 
     # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
-    i = 0; data_t_1 = []; data_t_2_1 = []; data_t_2_2 = []
+    i = 0; data_t_1 = []; data_t_2_1 = []; data_t_2_2 = []; tolerance = 5
     while CONST_NUM_OF_DATA > i:
         # Random generation of absolute joint orientations.
         #   Note:
@@ -96,15 +96,14 @@ def main():
 
         # Data structure.
         #   Position (p), orientation (quaternion) and absolute position of the joint (theta).
-        data_i = np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
-                                     theta_rand)
+        data_i = np.round(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
+                                    theta_rand), tolerance)
   
-        """
+        # ...
         if data_t_1 != []:
             for _, x_i in enumerate(data_t_1):
-                if all(x == y for _, (x, y) in enumerate(zip(data_i, x_i[0:7]))):
-                    print('Yes')
-        """
+                if all(np.round(x, tolerance) == np.round(y, tolerance) for _, (x, y) in enumerate(zip(data_i[0:7], x_i[0:7]))):
+                    continue
 
         # Store the acquired data.
         #   Dataset Type 1.

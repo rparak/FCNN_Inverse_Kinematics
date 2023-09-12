@@ -26,13 +26,12 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 100
+CONST_NUM_OF_DATA = 1000
 #   Number of dataset types.
 CONST_NUM_OF_DATASET_TYPES = 2
 #   The number of datasets in each type.
-#       Note:
-#           Index 0: Dataset Type 1
-#           Index 1: Dataset Type 2
+#       Index 0: Dataset Type 1
+#       Index 1: Dataset Type 2
 CONST_NUM_OF_DATASETS = [1, 2]
 
 
@@ -80,8 +79,13 @@ def main():
             # Store the path to the file.
             file_path.append(file_path_tmp)
 
+    
+    # Initialization of data to show the process flow.
+    percentage_offset = CONST_NUM_OF_DATA/10; percentage_idx = 1
+
     # Start the timer.
     t_0 = time.time()
+    print('[INFO] The generation of the dataset is in progress.')
 
     # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
     i = 0; data_t_1 = []; data_t_2_1 = []; data_t_2_2 = []; tolerance = 5
@@ -99,7 +103,7 @@ def main():
         data_i = np.round(np.append(np.append(T_rand.p.all(), T_rand.Get_Rotation('QUATERNION').all()), 
                                     theta_rand), tolerance)
   
-        # ...
+        # If there is a duplicate of the input data (position, orientation), skip to the next step.
         if data_t_1 != []:
             for _, x_i in enumerate(data_t_1):
                 if all(np.round(x, tolerance) == np.round(y, tolerance) for _, (x, y) in enumerate(zip(data_i[0:7], x_i[0:7]))):
@@ -116,14 +120,26 @@ def main():
         data_t_2_2.append(data_i)
 
         i += 1
+        if i > (percentage_offset * percentage_idx):
+            print(f'[INFO]  Percentage: {int(100 * float(i)/float(CONST_NUM_OF_DATA))} %')
+            print(f'[INFO]  Time: {(time.time() - t_0):.3f} in seconds')
+            percentage_idx += 1
+
+    # Display information (1).
+    print(f'[INFO]  Percentage: {int(100 * float(i)/float(CONST_NUM_OF_DATA))} %')
+    print(f'[INFO] Time: {(time.time() - t_0):0.05f} in seconds.')
 
     # Save the data to the file.
     for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_t_1, data_t_2_1, data_t_2_2])):
         File_IO.Save(file_path_i, data_i, 'pkl', ',')
+    print(f'[INFO] The file is successfully saved')
 
-    # Display information.
-    print('[INFO] The data generation has been successfully completed.')
-    print(f'[INFO] Time: {(time.time() - t_0):0.05f} in seconds.')
+    # Display information (2).
+    print(f'[INFO] Number of processed data: {i}')
+    if i == CONST_NUM_OF_DATA:
+        print('[INFO] The data generation has been successfully completed.')
+    else:
+        print(f'[WARNING] Insufficient number of combinations.')
 
 if __name__ == "__main__":
     sys.exit(main())

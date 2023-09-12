@@ -81,23 +81,22 @@ def main():
             y = data[:, -1].astype('float32').reshape(-1, 1)
 
     # Split the data from the dataset (x, y) into random train and test subsets.
-    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, train_size=0.9, test_size=0.1, 
-                                                                                random_state=0)
+    #x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, train_size=0.9, test_size=0.1, random_state=0)
 
     # Find the scale parameter from the dataset and transform the data using this parameter.
-    scaler_x, x_train_scaled = Utilities.Scale_Data([-1.0, 1.0], x_train)
-    scaler_y, y_train_scaled = Utilities.Scale_Data([-1.0, 1.0], y_train)
+    scaler_x, x_train_scaled = Utilities.Scale_Data([-1.0, 1.0], x)
+    scaler_y, y_train_scaled = Utilities.Scale_Data([-1.0, 1.0], y)
 
     # Transform of data using an the scale parameter.
-    x_test_transformed = Utilities.Transform_Data_With_Scaler(scaler_x, x_test)
-    y_test_transformed = Utilities.Transform_Data_With_Scaler(scaler_y, y_test)
+    #x_test_transformed = Utilities.Transform_Data_With_Scaler(scaler_x, x_test)
+    #y_test_transformed = Utilities.Transform_Data_With_Scaler(scaler_y, y_test)
 
     # Save the scaler parameter for input/output data.
     #joblib.dump(scaler_x, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_x.pkl')
     #joblib.dump(scaler_y, f'{project_folder}/src/Data/Scaler/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}_scaler_y.pkl')
 
-
     model = tf.keras.Sequential()
+    """
     model.add(tf.keras.layers.Dense(32,input_shape=(7,), activation=None, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
     model.add(tf.keras.layers.Dropout(0.01))
@@ -115,11 +114,42 @@ def main():
     model.add(tf.keras.layers.Dropout(0.01))
     model.add(tf.keras.layers.Dense(4, use_bias=False))
     model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    """
+
+    # Input.
+    model.add(tf.keras.layers.Dense(7 * 4, input_shape=(7,), activation = tf.nn.tanh))
+    #model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # Hidden L.
+    # 1.
+    model.add(tf.keras.layers.Dense(7 * 8, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # 2.
+    model.add(tf.keras.layers.Dense(7 * 16, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # 3.
+    model.add(tf.keras.layers.Dense(7 * 32, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # 4.
+    model.add(tf.keras.layers.Dense(7 * 16, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # 5.
+    model.add(tf.keras.layers.Dense(7 * 8, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
+    #model.add(tf.keras.layers.Dropout(0.01))
+    # Ouput.
+    model.add(tf.keras.layers.Dense(4, use_bias=False))
+    model.add(tf.keras.layers.Activation(tf.nn.tanh))
 
     # Generate network
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-03, epsilon=1e-06), loss='mse', 
                   metrics=['accuracy', 'mse'])
-    model.fit(x_train_scaled, y_train_scaled, epochs=1000, batch_size=64, verbose=1, validation_data=(x_test_transformed, y_test_transformed))
+    #model.fit(x_train_scaled, y_train_scaled, epochs=1000, batch_size=64, verbose=1, validation_data=(x_test_transformed, y_test_transformed))
+    model.fit(x_train_scaled, y_train_scaled, epochs=1000, batch_size=64, verbose=1)
 
     # Release the GPU resources when done
     tf.keras.backend.clear_session()

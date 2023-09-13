@@ -14,12 +14,10 @@ import matplotlib.pyplot as plt
 # Custom Script:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
-#   ../Lib/Kinematics/Core
-import Lib.Kinematics.Core as Kinematics
-#   ../Lib/Transformation/Utilities/Mathematics
-import Lib.Transformation.Utilities.Mathematics as Mathematics
 #   ../Lib/Trajectory/Utilities
 import Lib.Trajectory.Utilities
+#   ../Utilities/Parameters
+import Utilities.Parameters
 
 
 """
@@ -41,11 +39,6 @@ CONST_DATASET_ID = 0
 CONST_T_0 = 0.0
 CONST_T_1 = 1.0
 
-# Absolute joint position start(id: 0) and stop(id: 1).
-CONST_ABS_J_POS_0 = np.array([0.0, 0.0, 0.0, 0.0], dtype = np.float32)
-CONST_ABS_J_POS_1 = np.array([Mathematics.Degree_To_Radian(90.0), Mathematics.Degree_To_Radian(0.0), 0.10, Mathematics.Degree_To_Radian(45.0)],
-                              dtype = np.float32)
-
 def main():
     """
     Description:
@@ -64,9 +57,12 @@ def main():
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
 
+    # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
+    (abs_j_pos_0, abs_j_pos_1) = Utilities.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
+
     # Generation of multi-axis position trajectories from input parameters.
     theta_arr = []
-    for i, (th_actual, th_desired) in enumerate(zip(CONST_ABS_J_POS_0, CONST_ABS_J_POS_1)):
+    for i, (th_actual, th_desired) in enumerate(zip(abs_j_pos_0, abs_j_pos_1)):
         (theta_arr_i, _, _) = Polynomial_Cls.Generate(th_actual, th_desired, 0.0, 0.0, 0.0, 0.0,
                                                       CONST_T_0, CONST_T_1)
         theta_arr.append(theta_arr_i)
@@ -76,16 +72,17 @@ def main():
 
         # Visualization of relevant structures.
         ax.plot(Polynomial_Cls.t, theta_arr[i], '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
-                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='...')
+                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Absolute Joint Position')
 
-        # Parameters of the figure.
+        # Set parameters of the graph (plot).
         #   Set the x ticks.
         ax.set_xticks(np.arange(np.min(Polynomial_Cls.t) - 0.1, np.max(Polynomial_Cls.t) + 0.1, 0.1))
         #   Set the y ticks.
         ax.set_yticks(np.arange(np.min(theta_arr[i]) - 0.1, np.max(theta_arr[i]) + 0.1, 0.1))
         #   Label.
-        ax.set_xlabel(r't', fontsize=15, labelpad=10)
-        ax.set_ylabel(r'$\theta_{%d}(t)$' % (i + 1), fontsize=15, labelpad=10) 
+        ax.set_xlabel(r't in seconds', fontsize=15, labelpad=10)
+        ax.set_ylabel(r'$\theta_{%d}(t)$ in %s' % ((i + 1), 'radians' if Robot_Str.Theta.Type[i] == 'R' else 'meters'), 
+                      fontsize=15, labelpad=10) 
         #   Set parameters of the visualization.
         ax.grid(which='major', linewidth = 0.15, linestyle = '--')
         # Get handles and labels for the legend.
@@ -100,7 +97,7 @@ def main():
             plt.get_current_fig_manager().full_screen_toggle()
 
             # Save the results.
-            plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}.png', format='png', dpi=300)
+            plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/2D_Theta_{i}_Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}.png', format='png', dpi=300)
         else:
             # Show the result.
             plt.show()

@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 import Lib.Parameters.Robot as Parameters
 #   ../Lib/Kinematics/Core
 import Lib.Kinematics.Core as Kinematics
-#   ../Lib/Transformation/Utilities/Mathematics
-import Lib.Transformation.Utilities.Mathematics as Mathematics
 #   ../Lib/Trajectory/Utilities
 import Lib.Trajectory.Utilities
+#   ../Utilities/Parameters
+import Utilities.Parameters
 
 
 """
@@ -37,17 +37,9 @@ CONST_NUM_OF_DATA = 1000
 CONST_DATASET_TYPE = 1
 #   The ID of the dataset in the selected type.
 CONST_DATASET_ID = 0
-
-# ...
-# Interpolation stop(t_0), start(t_1) time in seconds.
+# Initial and final time constraints.
 CONST_T_0 = 0.0
 CONST_T_1 = 1.0
-# FPS (Frames Per Seconds) value.
-CONST_FPS = 30
-# Absolute joint position start(id: 0) and stop(id: 1).
-CONST_ABS_J_POS_0 = np.array([0.0, 0.0, 0.0, 0.0], dtype = np.float32)
-CONST_ABS_J_POS_1 = np.array([Mathematics.Degree_To_Radian(90.0), Mathematics.Degree_To_Radian(0.0), 0.10, Mathematics.Degree_To_Radian(45.0)],
-                              dtype = np.float32)
 
 def main():
     """
@@ -62,11 +54,14 @@ def main():
     Robot_Str = CONST_ROBOT_TYPE
 
     # Initialization of the class to generate trajectory.
-    Polynomial_Cls = Lib.Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=1.0/CONST_FPS)
+    Polynomial_Cls = Lib.Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=0.01)
     
+    # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
+    (abs_j_pos_0, abs_j_pos_1) = Utilities.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
+
     # Generation of multi-axis position trajectories from input parameters.
     theta_arr = []
-    for _, (th_actual, th_desired) in enumerate(zip(CONST_ABS_J_POS_0, CONST_ABS_J_POS_1)):
+    for _, (th_actual, th_desired) in enumerate(zip(abs_j_pos_0, abs_j_pos_1)):
         (theta_arr_i, _, _) = Polynomial_Cls.Generate(th_actual, th_desired, 0.0, 0.0, 0.0, 0.0,
                                                       CONST_T_0, CONST_T_1)
         theta_arr.append(theta_arr_i)
@@ -87,11 +82,10 @@ def main():
     ax = figure.add_subplot(projection='3d')
 
     # Visualization of relevant structures.
-    ax.plot(np.round(x, 4), np.round(y, 4), np.round(z, 4), '--o', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
-            markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='...')
+    ax.plot(np.round(x, 4), np.round(y, 4), np.round(z, 4), '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
+            markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Trajectory')
 
     # Set parameters of the graph (plot).
-    ax.set_title(f'Title ...', fontsize=25, pad=25.0)
     #   Limits.
     ax.set_xlim(np.minimum.reduce(x) - 0.1, np.maximum.reduce(x) + 0.1)
     ax.xaxis.pane.set_color((1.0, 1.0, 1.0, 1.0))
@@ -120,7 +114,7 @@ def main():
         plt.get_current_fig_manager().full_screen_toggle()
 
         # Save the results.
-        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}.png', format='png', dpi=300)
+        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/3D_Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}.png', format='png', dpi=300)
     else:
         # Show the result.
         plt.show()

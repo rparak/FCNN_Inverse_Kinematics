@@ -1,218 +1,189 @@
 # OS (Operating system interfaces)
 import os
-# Tensorflow
+# Typing (Support for type hints)
+import typing as tp
+# Tensorflow (Machine learning) [pip3 install tensorflow]
 import tensorflow as tf
 # Scikit-Optimize, or skopt (Sequential model-based optimization) [pip3 install scikit-optimize]
 import skopt
+# Joblib (Lightweight pipelining) [pip3 install joblib]
+import joblib
+# Sklearn (Simple and efficient tools for predictive data analysis) [pip3 install scikit-learn]
+import sklearn.model_selection
+# Custom Script:
+#   ../Lib/DNN_IK/Utilities
+import Lib.DNN_IK.Utilities as Utilities
 
-class RNN(object):
+"""
+Description:
+    Initialization of constants.
+"""
+# Locate the path to the project folder.
+CONST_PROJECT_FOLDER = os.getcwd().split('DNN_Inverse_Kinematics')[0] + 'DNN_Inverse_Kinematics'
+
+class DCNN_Trainer_Cls(object):
     """
     Description:
-        A class for building and training a neural network model from a data set.
-
-        Note:
-            The structure of the neural network can be found in the script (Parameters.py).
+        densely-connected neural network (DCNN)
 
     Initialization of the Class:
         Args:
-            (1) x_train [Float Array]: Input training data.
-            (2) y_train [Float Array]: Target training data.
-            (3) x_test [Float Array]: Input validation data.
-            (4) y_test [Float Array]: Target validation data.
-            (5) file_name [String]: The name of the file to save the model architecture.
+            (1) ... [...]: ...
+            (..) file_path [string]: The specified path of the file without extension (format).
 
-    Example:
-        # Initialization of the class.
-        RNN_cls = RNN(x_train, y_train, x_test, y_test, file_name)
+        Example:
+            Initialization:
+                # Assignment of the variables.
+                ...
 
-        # Construct and compile a neural network model.
-        RNN_cls.Build(**hyperparameters)
+                # Initialization of the class.
+                Cls = DCNN_Train_Cls()
 
-        # Save a model (image) of the neural network architecture.
-        RNN_cls.Save(name)
+            Features:
+                # Properties of the class.
+                ...
 
-        # Train a model over a fixed number of epochs.
-        nn_history = RNN_cls.Train(in_epochs, in_batch_size)
+                # Functions of the class.
+                ...
     """
+        
+    def __init__(self, x: tp.List[float], y: tp.List[float], train_size: float, test_size: float,
+                 file_path: str) -> None:
+        
+        # A variable that indicates that validation data will also be used for training.
+        self.__use_validation = False if test_size == 0.0 else True
 
-    def __init__(self, x_train, y_train, x_test, y_test, file_name):
-        # << PRIVATE >> #
-        # Input / Target training data.
-        self.__x_train = x_train 
-        self.__y_train = y_train
-        # Input / Target validation data.
-        self.__x_test = x_test
-        self.__y_test = y_test
-        # The name of the file to save the model architecture.
-        self.__file_name = file_name
+        # Split the data from the dataset (x, y) into random train and validation subsets.
+        if self.__use_validation == True:
+            self.__x_train, self.__x_validation, self.__y_train, self.__y_validation = sklearn.model_selection.train_test_split(x, y, train_size=train_size, test_size=test_size, 
+                                                                                                                                random_state=0)
+            
+        else:
+            self.__x_train = x; self.__y_train = y
+
+        # Find the scale parameter from the dataset and transform the data using this parameter.
+        self.__scaler_x, self.__x_train_scaled = Utilities.Scale_Data([-1.0, 1.0], self.__x_train)
+        self.__scaler_y, self.__y_train_scaled = Utilities.Scale_Data([-1.0, 1.0], self.__y_train)
+        
+        # The file path to save the data.
+        self.__file_path = file_path
+
+        # Set whether memory growth should be enabled.
+        gpu_arr = tf.config.experimental.list_physical_devices('GPU')
+        if gpu_arr:
+            for _, gpu_i in enumerate(gpu_arr):
+                tf.config.experimental.set_memory_growth(gpu_i, True)
+        else:
+            print('[INFO] No GPU device was found.')
 
         # Initialization of a sequential neural network model.
         self.__model = tf.keras.models.Sequential()
-        # A callback to save a model with a specific frequency.
-        self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_name}.h5', 
-                                                             verbose=2, save_best_only=True) 
 
-    def Save(self, name):
+        if self.__use_validation == True:
+            # Transform of data using an the scale parameter.
+            self.__x_validation_scaled = Utilities.Transform_Data_With_Scaler(self.__scaler_x, self.__x_validation)
+            self.__y_validation_scaled = Utilities.Transform_Data_With_Scaler(self.__scaler_y, self.__y_validation)
+
+            # A callback to save the model with a specific frequency.
+            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}.h5', monitor='val_loss', save_best_only=True, 
+                                                                 verbose=1)
+        else:
+            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}.h5', monitor='loss', save_best_only=True, 
+                                                                 verbose=1)   
+        
+    def Save(self):
+
+        # Save the scaler parameter for input/output data.
+        joblib.dump(self.__scaler_x, f'{self.__file_path}_Scaler_x.pkl')
+        joblib.dump(self.__scaler_y, f'{self.__file_path}_Scaler_y.pkl')
+
+        # Save a model (image) of the neural network architecture.
+        tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_Architecture.png', show_shapes=True, show_layer_names=True)
+
+    def __Release(self) -> None:
         """
         Description:
-            Function to save a model (image) of the neural network architecture.
-
-        Args:
-            (1) name [String]: The name of the file to save the model architecture.
+            Function to release GPU resources when the training process is already complete.
         """
 
-        tf.keras.utils.plot_model(self.__model, to_file=f'Architecture_Image/{name}.png', show_shapes=True, show_layer_names=True)
+        tf.keras.backend.clear_session()
 
-    def Build(self, architecture, hidden_layers_w_d, hidden_layers_wo_d, in_layer_units, hidden_layer_w_d_units, 
-              hidden_layer_wo_d_units, in_layer_activation, kernel_layer_activation, layer_drop, opt, opt_learning_rate):
+    def Build(self, NN_Parameters: tp.Dict) -> None:
         """
         Description:
-            A function to construct and compile a neural network model.
-
-        Args:
-            (1 - 11) NN Hyperparameters [-]: Neural Network hyperparameters.
-                Note: 
-                    More information can be found in the script (Parameters.py).
+            ...
         """
+                
+        pass
 
-
-        # Input layer.
-        self.__model.add(architecture(in_layer_units, input_shape=(self.__x_train.shape[1], 1), activation=in_layer_activation))
-        self.__model.add(tf.keras.layers.Dropout(layer_drop))
-
-        # Hidden layers with dropout layer
-        for _ in range(hidden_layers_w_d):
-            self.__model.add(architecture(hidden_layer_w_d_units, activation=kernel_layer_activation))
-            self.__model.add(tf.keras.layers.Dropout(layer_drop))
-
-        # Hidden layers with dropout layer.
-        if hidden_layers_wo_d != 0:
-            for _ in range(hidden_layers_wo_d):
-                self.__model.add(architecture(hidden_layer_wo_d_units, activation=kernel_layer_activation))
-
-        # Output layer.
-        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1]))
-
-        # Compile a neural network model.
-        self.__model.compile(loss='mse', optimizer=opt(learning_rate=opt_learning_rate), metrics= ['accuracy', 'mse', 'mae'])
-
-    def Train(self, in_epochs, in_batch_size):
+    def Train(self, epochs: int, batch_size: int) -> None:
         """
         Description:
-            A function to train a model over a fixed number of epochs (iterations on a dataset).
-
-        Args:
-            (1) in_epochs [INT]: Number of epochs (iterations) to train the model.
-            (2) in_batch_size [INT]: Number of samples to update the gradient.
+            ...
         """
+                
+        if self.__use_validation == True:
+            self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1, 
+                             validation_data=(self.__x_validation_scaled, self.__y_validation_scaled), callbacks = [self.__callback])
+        else:
+            self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1,
+                             callbacks = [self.__callback])
 
-        return self.__model.fit(self.__x_train, self.__y_train, epochs=in_epochs, batch_size=in_batch_size, verbose=2, 
-                                validation_data=(self.__x_test, self.__y_test), callbacks = [self.__callback])
+        # Release GPU resources when the training process is already complete.
+        self.__Release()
 
-
-class RNN_Tuner(object):
+class DCNN_Predictor_Cls(object):
     """
     Description:
-        A class for tuning a neural network model from a dataset using a Bayesian search method.
-
-        Note:
-            The structure of the neural network can be found in the script (Parameters.py).
+        ...
 
     Initialization of the Class:
         Args:
-            (1) x_train [Float Array]: Input training data.
-            (2) y_train [Float Array]: Target training data.
-            (3) file_name [String]: The name of the file to save the tuner results.
+            (1) ... [...]: ...
 
-    Example:
-        # Initialization of the class.
-        RNN_Tuner_cls = RNN_Tuner(x_train, y_train, file_name)
+        Example:
+            Initialization:
+                # Assignment of the variables.
+                ...
 
-        # Tune a model hyperparameters.
-        RNN_Tuner_cls.Tune(hyperparameters, iterations, cross_validation, save_results)
+                # Initialization of the class.
+                Cls = DNN_Cls()
 
+            Features:
+                # Properties of the class.
+                ...
+
+                # Functions of the class.
+                ...
     """
+        
+    def __init__(self) -> None:
+        pass  
 
-    def __init__(self, x_train, y_train, file_name):
-        # << PRIVATE >> #
-        # Input / Target training data.
-        self.__x_train = x_train
-        self.__y_train = y_train
-        # The name of the file to save the tuner results.
-        self.__file_name = file_name
+class DCNN_Tuner_Cls(object):
+    """
+    Description:
+        ...
 
-    def __Save(self, params, score):
-        """
-        Description:
-            Function to save tuner results (hyperparameters, score).
-
+    Initialization of the Class:
         Args:
-            (1) params [String]: Best tuning results (hyperparameters).
-            (2) score [String] Best tuning score (loss).
-        """
+            (1) ... [...]: ...
 
-        f = open(f'{os.getcwd()}/Result_Tuner/BayesSearchCV/{self.__file_name}.txt', 'w')
-        f.write('Parameters: \n' + params + '\n')
-        f.write('Score: \n' + score)
-        f.close()
+        Example:
+            Initialization:
+                # Assignment of the variables.
+                ...
 
-    def __Build(self, architecture, hidden_layers_w_d, hidden_layers_wo_d, in_layer_units, hidden_layer_w_d_units, 
-                hidden_layer_wo_d_units, in_layer_activation, kernel_layer_activation, layer_drop, opt, opt_learning_rate):
+                # Initialization of the class.
+                Cls = DNN_Cls()
 
-        """
-        Description:
-            A function to construct, compile, and return a neural network model.
+            Features:
+                # Properties of the class.
+                ...
 
-        Args:
-            (1 - 11) NN Hyperparameters [-]: More information can be found in the script (Parameters.py).
-        """
-
-        # Initialization of a sequential neural network model.
-        model = tf.keras.models.Sequential()
-
-        # Input layer.
-        model.add(architecture(in_layer_units, input_shape=self.__x_train.shape[1::], return_sequences=True, activation=in_layer_activation))
-        model.add(tf.keras.layers.Dropout(layer_drop))
-
-        # Hidden layers with dropout layer.
-        for _ in range(hidden_layers_w_d):
-            model.add(architecture(hidden_layer_w_d_units, return_sequences=True, activation=kernel_layer_activation))
-            model.add(tf.keras.layers.Dropout(layer_drop))
-
-        # Hidden layers without dropout layer.
-        if hidden_layers_wo_d != 0:
-            for _ in range(hidden_layers_wo_d):
-                model.add(architecture(hidden_layer_wo_d_units, return_sequences=True, activation=kernel_layer_activation))
-
-        # Output layer.
-        model.add(tf.keras.layers.Dense(self.__y_train.shape[-1]))
-
-        # Compile a neural network model.
-        model.compile(loss='mse', optimizer=opt(learning_rate=opt_learning_rate), metrics=['accuracy', 'mse', 'mae'])
-
-        return model
-    
-    def Tune(self, hyperparameters, iterations, cross_validation, save_results):
-        """
-        Description:
-            A function to tune a model hyperparameters.
-
-        Args:
-            (1) hyperparameters [-]: Neural Network hyperparameters.
-                Note: 
-                    More information can be found in the script (Parameters.py).
-
-            (2) iterations [INT]: Number of parameter settings that are sampled. 
-            (3) cross_validation [INT]: Determines the cross-validation splitting strategy.
-            (4) save_results [BOOL]: Specifies whether to save the tuner results.
-        """
-
-        regressor = tf.keras.wrappers.scikit_learn.KerasRegressor(build_fn = self.__Build)
-
-        # Bayesian optimization over hyperparameters.
-        bayes_search = skopt.BayesSearchCV(estimator=regressor, search_spaces = hyperparameters, n_iter = iterations, cv = cross_validation)
-        # Run fit on the estimator.
-        bayes_search.fit(self.__x_train, self.__y_train)
-
-        if save_results == True:
-            self.__Save(str(bayes_search.best_params_), str(bayes_search.best_score_))
+                # Functions of the class.
+                ...
+    """
+        
+    def __init__(self) -> None:
+        pass

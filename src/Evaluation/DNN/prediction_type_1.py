@@ -18,8 +18,8 @@ import Lib.Parameters.Robot as Parameters
 import Lib.Kinematics.Core as Kinematics
 #   ../Lib/Trajectory/Utilities
 import Lib.Trajectory.Utilities
-#   ../Utilities/Parameters
-import Utilities.Parameters
+#   ../Configuration/Parameters
+import Configuration.Parameters
 
 
 """
@@ -37,9 +37,6 @@ CONST_NUM_OF_DATA = 1000
 CONST_DATASET_TYPE = 1
 #   The ID of the dataset in the selected type.
 CONST_DATASET_ID = 0
-# Initial and final time constraints.
-CONST_T_0 = 0.0
-CONST_T_1 = 1.0
 
 def main():
     """
@@ -57,13 +54,13 @@ def main():
     Polynomial_Cls = Lib.Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=0.01)
     
     # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
-    (abs_j_pos_0, abs_j_pos_1) = Utilities.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
+    (abs_j_pos_0, abs_j_pos_1) = Configuration.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
 
     # Generation of multi-axis position trajectories from input parameters.
     theta_arr = []
     for _, (th_actual, th_desired) in enumerate(zip(abs_j_pos_0, abs_j_pos_1)):
         (theta_arr_i, _, _) = Polynomial_Cls.Generate(th_actual, th_desired, 0.0, 0.0, 0.0, 0.0,
-                                                      CONST_T_0, CONST_T_1)
+                                                      Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
         theta_arr.append(theta_arr_i)
 
     # Obtain the homogeneous transformation matrix using forward kinematics from 

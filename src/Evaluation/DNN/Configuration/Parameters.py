@@ -6,10 +6,13 @@ import typing as tp
 #   ../Lib/Transformation/Utilities/Mathematics
 import Lib.Transformation.Utilities.Mathematics as Mathematics
 
-# Absolute joint position start(id: 0) and stop(id: 1).
-CONST_ABS_J_POS_0 = np.array([0.0, 0.0, 0.0, 0.0], dtype = np.float32)
-CONST_ABS_J_POS_1 = np.array([Mathematics.Degree_To_Radian(90.0), Mathematics.Degree_To_Radian(0.0), 0.10, Mathematics.Degree_To_Radian(45.0)],
-                              dtype = np.float32)
+"""
+Description:
+    Initialization of constants.
+"""
+# Initial and final time constraints.
+CONST_T_0 = 0.0
+CONST_T_1 = 1.0
 
 def Get_Absolute_Joint_Positions(name: str) -> tp.Tuple[tp.List[float],
                                                         tp.List[float]]:

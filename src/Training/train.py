@@ -16,10 +16,8 @@ import Lib.Parameters.Robot as Parameters
 import Lib.Utilities.File_IO as File_IO
 #   ../Lib/DNN_IK/Utilities
 import Lib.DNN_IK.Utilities as Utilities
-#   ../Lib/DNN_IK/Parameters
-import Lib.DNN_IK.Parameters
 #   ../Lib/DNN_IK/Model
-import Lib.DNN_IK.Model
+import Lib.DNN_IK.Model_Old
 
 """
 Description:

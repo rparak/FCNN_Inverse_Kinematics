@@ -26,14 +26,13 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 100
+CONST_NUM_OF_DATA = 1000
 #   Number of dataset types.
 CONST_NUM_OF_DATASET_TYPES = 2
 #   The number of datasets in each type.
-#       Index 0: Dataset Type 1
-#       Index 1: Dataset Type 2
+#       Index 0: Dataset Type 0
+#       Index 1: Dataset Type 1
 CONST_NUM_OF_DATASETS = [1, 2]
-
 
 def main():
     """
@@ -41,11 +40,11 @@ def main():
         The main program that generates the dataset of the selected robotic structure.
 
         The program creates two types of datasets, which are described below.
-            Dataset Type 1.
+            Dataset Type 0.
                 DNN ID 0:
                     Input of the NN:  x -> Position(x, y, z); Orientation(quaternion)
                     Output of the NN: y -> theta(0 .. n)
-            Dataset Type 2.
+            Dataset Type 1.
                 DNN ID 0:
                     Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
                     Output of the NN: y -> theta(0 .. n - 1) 
@@ -70,7 +69,7 @@ def main():
     file_path = []
     for i in range(CONST_NUM_OF_DATASET_TYPES):
         for j in range(CONST_NUM_OF_DATASETS[i]):
-            file_path_tmp = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{i + 1}/Config_N_{CONST_NUM_OF_DATA}_ID_{j}"
+            file_path_tmp = f"{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_{i}/Config_N_{CONST_NUM_OF_DATA}_ID_{j}"
 
             # Remove the '*.urdf' file if it already exists.
             if os.path.isfile(f'{file_path_tmp}.pkl'):
@@ -88,7 +87,7 @@ def main():
     print('[INFO] The generation of the dataset is in progress.')
 
     # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
-    i = 0; data_t_1 = []; data_t_2_1 = []; data_t_2_2 = []; tolerance = 5
+    i = 0; data_t_0 = []; data_t_1_0 = []; data_t_1_1 = []; tolerance = 5
     while CONST_NUM_OF_DATA > i:
         # Random generation of absolute joint orientations.
         #   Note:
@@ -104,20 +103,20 @@ def main():
                                     theta_rand), tolerance)
   
         # If there is a duplicate of the input data (position, orientation), skip to the next step.
-        if data_t_1 != []:
-            for _, x_i in enumerate(data_t_1):
+        if data_t_0 != []:
+            for _, x_i in enumerate(data_t_0):
                 if all(np.round(x, tolerance) == np.round(y, tolerance) for _, (x, y) in enumerate(zip(data_i[0:7], x_i[0:7]))):
                     continue
 
         # Store the acquired data.
-        #   Dataset Type 1.
+        #   Dataset Type 0.
         #       ID 0.   
-        data_t_1.append(data_i)
-        #   Dataset Type 2.
+        data_t_0.append(data_i)
+        #   Dataset Type 1.
         #       ID 0.
-        data_t_2_1.append(data_i[0:-1])
+        data_t_1_0.append(data_i[0:-1])
         #       ID 1.
-        data_t_2_2.append(data_i)
+        data_t_1_1.append(data_i)
 
         i += 1
         if i > (percentage_offset * percentage_idx):
@@ -130,7 +129,7 @@ def main():
     print(f'[INFO] Time: {(time.time() - t_0):0.05f} in seconds.')
 
     # Save the data to the file.
-    for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_t_1, data_t_2_1, data_t_2_2])):
+    for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_t_0, data_t_1_0, data_t_1_1])):
         File_IO.Save(file_path_i, data_i, 'pkl', ',')
     print(f'[INFO] The file is successfully saved')
 

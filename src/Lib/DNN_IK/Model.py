@@ -94,8 +94,8 @@ class DCNN_Trainer_Cls(object):
     def Save(self):
 
         # Save the scaler parameter for input/output data.
-        joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
-        joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
+        #joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
+        #joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
 
         # Save a model (image) of the neural network architecture.
         tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_use_val_{self.__use_validation}_Architecture.png', show_shapes=True, show_layer_names=True)
@@ -108,13 +108,71 @@ class DCNN_Trainer_Cls(object):
 
         tf.keras.backend.clear_session()
 
-    def Build(self, Hyperparameters: tp.Dict) -> None:
+    def __Compile_Method_0(self, Hyperparameters: tp.Dict) -> None:
+        """
+        Description:
+            ....
+        """
+
+        # Set the input layer of the DCNN model architecture.
+        self.__model.add(Hyperparameters['architecture'](Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), activation=Hyperparameters['in_layer_activation']))
+
+        # Set the hidden layers of the DCNN model architecture.
+        if Hyperparameters['hidden_layers'] > 0:
+            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_units']):
+                self.__model.add(Hyperparameters['architecture'](hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
+                                                                use_bias=Hyperparameters['use_bias']))
+
+        # Set the output layer of the DCNN model architecture.
+        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
+                                               use_bias=Hyperparameters['use_bias']))
+
+        # Finally, compile the model.
+        self.__model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']), loss='mse', 
+                             metrics= ['accuracy', 'mse'])
+
+    def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
+        """
+        Description:
+            ....
+        """
+                
+        # Set the input layer of the DCNN model architecture.
+        self.__model.add(Hyperparameters['architecture'](Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), activation=Hyperparameters['in_layer_activation']))
+
+        # Set the hidden layers of the DCNN model architecture.
+        #   1\ Hidden layers with dropout layer.
+        if Hyperparameters['hidden_layers_w_d'] > 0:
+            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_w_d_units']):
+                self.__model.add(Hyperparameters['architecture'](hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
+                                                                use_bias=Hyperparameters['use_bias']))
+                self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_drop']))
+
+        #   1\ Hidden layers without dropout layer.
+        if Hyperparameters['hidden_layers_wo_d'] > 0:
+            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_wo_d_units']):
+                self.__model.add(Hyperparameters['architecture'](hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
+                                                                use_bias=Hyperparameters['use_bias']))
+            
+        # Set the output layer of the DCNN model architecture.
+        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
+                                               use_bias=Hyperparameters['use_bias']))
+
+        # Finally, compile the model.
+        self.__model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']), loss='mse', 
+                             metrics= ['accuracy', 'mse'])
+
+    def Compile(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
             ...
         """
                 
-        pass
+        if self.__use_validation == True:
+            self.__Compile_Method_0(Hyperparameters)
+        else:
+            self.__Compile_Method_0(Hyperparameters)
+
 
     def Train(self, epochs: int, batch_size: int) -> None:
         """

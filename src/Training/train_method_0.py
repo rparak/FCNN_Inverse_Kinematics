@@ -12,6 +12,8 @@ import Lib.Parameters.Robot as Parameters
 import Lib.Utilities.File_IO as File_IO
 #   ../Lib/DNN_IK/Model
 import Lib.DNN_IK.Model
+#   ../Configuration/Parameters
+import Configuration.Parameters
 
 """
 Description:
@@ -65,6 +67,12 @@ def main():
     # ...
     DCNN_IK_Trainer_Cls = Lib.DNN_IK.Model.DCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                             file_path=file_path_w)
+    #   ...
+    DCNN_IK_Trainer_Cls.Compile(Configuration.Parameters.DCNN_HYPERPARAMETERS_TRAINER_METHOD_0)
+    #   ...
+    DCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
+    #   ...
+    #DCNN_IK_Trainer_Cls.Save()
 
 
 if __name__ == "__main__":

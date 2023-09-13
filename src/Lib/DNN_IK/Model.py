@@ -85,20 +85,20 @@ class DCNN_Trainer_Cls(object):
             self.__y_validation_scaled = Utilities.Transform_Data_With_Scaler(self.__scaler_y, self.__y_validation)
 
             # A callback to save the model with a specific frequency.
-            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}.h5', monitor='val_loss', save_best_only=True, 
+            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}_use_val_{self.__use_validation}.h5', monitor='val_loss', save_best_only=True, 
                                                                  verbose=1)
         else:
-            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}.h5', monitor='loss', save_best_only=True, 
+            self.__callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}_use_val_{self.__use_validation}.h5', monitor='loss', save_best_only=True, 
                                                                  verbose=1)   
         
     def Save(self):
 
         # Save the scaler parameter for input/output data.
-        joblib.dump(self.__scaler_x, f'{self.__file_path}_Scaler_x.pkl')
-        joblib.dump(self.__scaler_y, f'{self.__file_path}_Scaler_y.pkl')
+        joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
+        joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
 
         # Save a model (image) of the neural network architecture.
-        tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_Architecture.png', show_shapes=True, show_layer_names=True)
+        tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_use_val_{self.__use_validation}_Architecture.png', show_shapes=True, show_layer_names=True)
 
     def __Release(self) -> None:
         """
@@ -108,7 +108,7 @@ class DCNN_Trainer_Cls(object):
 
         tf.keras.backend.clear_session()
 
-    def Build(self, NN_Parameters: tp.Dict) -> None:
+    def Build(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
             ...

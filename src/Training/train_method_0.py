@@ -70,9 +70,9 @@ def main():
     #   ...
     DCNN_IK_Trainer_Cls.Compile(Configuration.Parameters.DCNN_HYPERPARAMETERS_TRAINER_METHOD_0)
     #   ...
-    DCNN_IK_Trainer_Cls.Train(epochs=100, batch_size=64)
+    DCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
     #   ...
-    #DCNN_IK_Trainer_Cls.Save()
+    DCNN_IK_Trainer_Cls.Save()
 
 
 if __name__ == "__main__":

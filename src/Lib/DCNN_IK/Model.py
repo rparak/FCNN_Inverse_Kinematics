@@ -13,8 +13,8 @@ import joblib
 # Sklearn (Simple and efficient tools for predictive data analysis) [pip3 install scikit-learn]
 import sklearn.model_selection
 # Custom Script:
-#   ../Lib/DNN_IK/Utilities
-import Lib.DNN_IK.Utilities as Utilities
+#   ../Lib/DCNN_IK/Utilities
+import Lib.DCNN_IK.Utilities as Utilities
 #   ../Lib/Utilities/File_IO
 import Lib.Utilities.File_IO as File_IO
 
@@ -41,7 +41,7 @@ class DCNN_Trainer_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DCNN_Train_Cls()
+                Cls = DCNN_Trainer_Cls()
 
             Features:
                 # Properties of the class.
@@ -241,7 +241,7 @@ class DCNN_Predictor_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DNN_Cls()
+                Cls = DCNN_Predictor_Cls()
 
             Features:
                 # Properties of the class.
@@ -254,7 +254,7 @@ class DCNN_Predictor_Cls(object):
     def __init__(self) -> None:
         pass  
 
-class DCNN_Tuner_Cls(object):
+class DCNN_Optimizer_Cls(object):
     """
     Description:
         ...
@@ -269,7 +269,7 @@ class DCNN_Tuner_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DNN_Cls()
+                Cls = DCNN_Optimizer_Cls()
 
             Features:
                 # Properties of the class.

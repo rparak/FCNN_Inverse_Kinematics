@@ -10,8 +10,8 @@ import os
 import Lib.Parameters.Robot as Parameters
 #   ../Lib/Utilities/File_IO
 import Lib.Utilities.File_IO as File_IO
-#   ../Lib/DNN_IK/Model
-import Lib.DNN_IK.Model
+#   ../Lib/DCNN_IK/Model
+import Lib.DCNN_IK.Model
 #   ../Configuration/Parameters
 import Configuration.Parameters
 

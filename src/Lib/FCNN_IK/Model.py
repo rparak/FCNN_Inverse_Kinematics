@@ -13,8 +13,8 @@ import joblib
 # Sklearn (Simple and efficient tools for predictive data analysis) [pip3 install scikit-learn]
 import sklearn.model_selection
 # Custom Script:
-#   ../Lib/DCNN_IK/Utilities
-import Lib.DCNN_IK.Utilities as Utilities
+#   ../Lib/FCNN_IK/Utilities
+import Lib.FCNN_IK.Utilities as Utilities
 #   ../Lib/Utilities/File_IO
 import Lib.Utilities.File_IO as File_IO
 
@@ -25,10 +25,10 @@ Description:
 # Locate the path to the project folder.
 CONST_PROJECT_FOLDER = os.getcwd().split('DNN_Inverse_Kinematics')[0] + 'DNN_Inverse_Kinematics'
 
-class DCNN_Trainer_Cls(object):
+class FCNN_Trainer_Cls(object):
     """
     Description:
-        densely-connected neural network (DCNN)
+        fully-connected neural network (FCNN)
 
     Initialization of the Class:
         Args:
@@ -41,7 +41,7 @@ class DCNN_Trainer_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DCNN_Trainer_Cls()
+                Cls = FCNN_Trainer_Cls()
 
             Features:
                 # Properties of the class.
@@ -143,16 +143,16 @@ class DCNN_Trainer_Cls(object):
             ....
         """
 
-        # Set the input layer of the DCNN model architecture.
+        # Set the input layer of the FCNN model architecture.
         self.__model.add(Hyperparameters['architecture'](Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), activation=Hyperparameters['in_layer_activation']))
 
-        # Set the hidden layers of the DCNN model architecture.
+        # Set the hidden layers of the FCNN model architecture.
         if Hyperparameters['hidden_layers'] > 0:
             for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_units']):
                 self.__model.add(Hyperparameters['architecture'](hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
                                                                 use_bias=Hyperparameters['use_bias']))
 
-        # Set the output layer of the DCNN model architecture.
+        # Set the output layer of the FCNN model architecture.
         self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
                                                use_bias=Hyperparameters['use_bias']))
 
@@ -166,10 +166,10 @@ class DCNN_Trainer_Cls(object):
             ....
         """
                 
-        # Set the input layer of the DCNN model architecture.
+        # Set the input layer of the FCNN model architecture.
         self.__model.add(Hyperparameters['architecture'](Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), activation=Hyperparameters['in_layer_activation']))
 
-        # Set the hidden layers of the DCNN model architecture.
+        # Set the hidden layers of the FCNN model architecture.
         #   1\ Hidden layers with dropout layer.
         if Hyperparameters['hidden_layers_w_d'] > 0:
             for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_w_d_units']):
@@ -183,7 +183,7 @@ class DCNN_Trainer_Cls(object):
                 self.__model.add(Hyperparameters['architecture'](hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
                                                                 use_bias=Hyperparameters['use_bias']))
             
-        # Set the output layer of the DCNN model architecture.
+        # Set the output layer of the FCNN model architecture.
         self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
                                                use_bias=Hyperparameters['use_bias']))
 
@@ -226,7 +226,7 @@ class DCNN_Trainer_Cls(object):
         # Release GPU resources when the training process is already complete.
         self.__Release()
 
-class DCNN_Predictor_Cls(object):
+class FCNN_Predictor_Cls(object):
     """
     Description:
         ...
@@ -241,7 +241,7 @@ class DCNN_Predictor_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DCNN_Predictor_Cls()
+                Cls = FCNN_Predictor_Cls()
 
             Features:
                 # Properties of the class.
@@ -254,7 +254,7 @@ class DCNN_Predictor_Cls(object):
     def __init__(self) -> None:
         pass  
 
-class DCNN_Optimizer_Cls(object):
+class FCNN_Optimizer_Cls(object):
     """
     Description:
         ...
@@ -269,7 +269,7 @@ class DCNN_Optimizer_Cls(object):
                 ...
 
                 # Initialization of the class.
-                Cls = DCNN_Optimizer_Cls()
+                Cls = FCNN_Optimizer_Cls()
 
             Features:
                 # Properties of the class.

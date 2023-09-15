@@ -23,11 +23,11 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 10
 #   Type of the dataset.
-CONST_DATASET_TYPE = 0
+CONST_DATASET_TYPE = 1
 #   The ID of the dataset in the selected type.
-CONST_DATASET_ID = 0
+CONST_DATASET_ID = 1
 
 def main():
     """
@@ -57,22 +57,21 @@ def main():
         if CONST_DATASET_ID == 0:
             # Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
             # Output of the NN: y -> theta(0 .. n - 1) 
-            x = data[:, 0:7].astype('float32'); y = data[:, 7:-1].astype('float32')
+            x = data[:, 0:7].astype('float32'); y = data[:, 7::].astype('float32')
         else:
             # Input of the NN:  x -> Position(x, y, z), Orientation(quaternion), theta(0 .. n - 1)
             # Output of the NN: y -> theta(n)
-            x = data[:, 0:-1].astype('float32')
-            y = data[:, -1].astype('float32').reshape(-1, 1)
+            x = data[:, 0:7].astype('float32')
+            y = data[:, 7::].astype('float32').reshape(-1, 1)
 
     # ...
-    DCNN_IK_Trainer_Cls = Lib.DNN_IK.Model.DCNN_Trainer_Cls(x=x, y=y, train_size=0.9, test_size=0.1, 
-                                                            file_path=file_path_w)
+    #DCNN_IK_Trainer_Cls = Lib.DNN_IK.Model.DCNN_Trainer_Cls(x=x, y=y, train_size=0.9, test_size=0.1, file_path=file_path_w)
     #   ...
-    DCNN_IK_Trainer_Cls.Compile(Configuration.Parameters.DCNN_HYPERPARAMETERS_TRAINER_METHOD_1)
+    #DCNN_IK_Trainer_Cls.Compile(Configuration.Parameters.DCNN_HYPERPARAMETERS_TRAINER_METHOD_1)
     #   ...
-    DCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
+    #DCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
     #   ...
-    DCNN_IK_Trainer_Cls.Save()
+    #DCNN_IK_Trainer_Cls.Save()
 
 
 if __name__ == "__main__":

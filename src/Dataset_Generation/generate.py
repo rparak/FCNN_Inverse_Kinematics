@@ -26,7 +26,7 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 10
 #   Number of dataset types.
 CONST_NUM_OF_DATASET_TYPES = 2
 #   The number of datasets in each type.
@@ -49,7 +49,7 @@ def main():
                     Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
                     Output of the NN: y -> theta(0 .. n - 1) 
                 DNN ID 1:
-                    Input of the NN:  x -> Position(x, y, z), Orientation(quaternion), theta(0 .. n - 1)
+                    Input of the NN:  x -> Position(x, y, z), Orientation(quaternion)
                     Output of the NN: y -> theta(n)
             
             Where n is the number of absolute joint positions.
@@ -116,7 +116,7 @@ def main():
         #       ID 0.
         data_t_1_0.append(data_i[0:-1])
         #       ID 1.
-        data_t_1_1.append(data_i)
+        data_t_1_1.append(np.append(data_i[0:7], data_i[-1]))
 
         i += 1
         if i > (percentage_offset * percentage_idx):

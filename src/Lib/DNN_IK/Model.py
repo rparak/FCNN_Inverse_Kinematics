@@ -2,6 +2,8 @@
 import os
 # Typing (Support for type hints)
 import typing as tp
+# Numpy (Array computing) [pip3 install numpy]
+import numpy as np
 # Tensorflow (Machine learning) [pip3 install tensorflow]
 import tensorflow as tf
 # Scikit-Optimize, or skopt (Sequential model-based optimization) [pip3 install scikit-optimize]
@@ -13,6 +15,8 @@ import sklearn.model_selection
 # Custom Script:
 #   ../Lib/DNN_IK/Utilities
 import Lib.DNN_IK.Utilities as Utilities
+#   ../Lib/Utilities/File_IO
+import Lib.Utilities.File_IO as File_IO
 
 """
 Description:
@@ -107,24 +111,23 @@ class DCNN_Trainer_Cls(object):
         """
 
         # Save the scaler parameter for input/output data.
-        #joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
-        #joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
+        joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
+        joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
+        print(f'[INFO] TThe input/output scalers have been successfully saved..')
+        print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
+        print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
 
         # Save a model (image) of the neural network architecture.
-        #tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_use_val_{self.__use_validation}_Architecture.png', show_shapes=True, show_layer_names=True)
-
+        tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_use_val_{self.__use_validation}_Architecture.png', show_shapes=True, show_layer_names=True)
+        print(f'[INFO] The image of the neural network architecture has been successfully saved.')
+        print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_Architecture.png')
+        
         # Save the data from the training.
         if self.__train_data != None:
-            if self.__use_validation == True:
-                for _, metrics_i in enumerate(['accuracy', 'val_accuracy', 'loss', 'val_loss', 
-                                               'mse', 'val_mse', 'mae', 'val_mae']):
-                    print(metrics_i)
-                    print(self.__train_data.history[metrics_i])
-            else:
-                for _, metrics_i in enumerate(['accuracy', 'loss', 'mse', 'mae']):
-                    print(metrics_i)
-                    print(self.__train_data.history[metrics_i])
-
+            for _, data_i in enumerate(np.array(list(self.__train_data.history.values()), dtype=np.float32).T):
+                File_IO.Save(f'{self.__file_path}_use_val_{self.__use_validation}_History', data_i, 'txt', ',')
+            print(f'[INFO] The training data history has been successfully saved.')
+            print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_History.txt')
 
     def __Release(self) -> None:
         """

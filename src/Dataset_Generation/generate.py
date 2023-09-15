@@ -131,7 +131,7 @@ def main():
     # Save the data to the file.
     for _, (file_path_i, data_i) in enumerate(zip(file_path, [data_t_0, data_t_1_0, data_t_1_1])):
         File_IO.Save(file_path_i, data_i, 'pkl', ',')
-    print(f'[INFO] The file is successfully saved')
+    print(f'[INFO] The file has been successfully saved.')
 
     # Display information (2).
     print(f'[INFO] Number of processed data: {i}')

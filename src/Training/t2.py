@@ -50,4 +50,3 @@ y_val = keras.utils.to_categorical(y_val, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 tuner.search(x_train, y_train, epochs=2, validation_data=(x_val, y_val))
-

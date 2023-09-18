@@ -92,7 +92,8 @@ def main():
     keras_classifier = KerasClassifier(build_fn=create_model, verbose=0, learning_rate=None, units=None, activation=None)
 
     print(keras_classifier.get_params().keys())
-    param_grid = dict(learning_rate=(0.001, 0.1), units=(32, 256), activation=['relu', 'tanh', 'sigmoid'])
+    param_grid = dict(learning_rate=[0.001], units=[32], activation=['sigmoid'])
+    print(param_grid)
 
     # Create BayesSearchCV with KerasClassifier
     bayes_cv = BayesSearchCV(
@@ -100,9 +101,11 @@ def main():
         param_grid,
         n_iter=20,  # Number of parameter combinations to try
         cv=3,       # Number of cross-validation folds
-        n_jobs=-1   # Use all available CPU cores
+        n_jobs=8   # Use all available CPU cores
     )
 
+    bayes_cv.fit(x, y)
+    """
     # Perform hyperparameter tuning
     bayes_cv.fit(x, y)
 
@@ -113,6 +116,7 @@ def main():
     # Evaluate the model on the test set
     test_score = bayes_cv.score(x, y)
     print("Test Accuracy: {:.4f}".format(test_score))
+    """
 
 if __name__ == "__main__":
     sys.exit(main())

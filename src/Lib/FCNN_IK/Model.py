@@ -223,10 +223,10 @@ class FCNN_Trainer_Cls(object):
  
         if self.__use_validation == True:
             self.__train_data = self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1, 
-                                                 validation_data=(self.__x_validation_scaled, self.__y_validation_scaled), callbacks = [self.__callback])
+                                                 validation_data=(self.__x_validation_scaled, self.__y_validation_scaled), callbacks=[self.__callback])
         else:
             self.__train_data = self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1,
-                                                 callbacks = [self.__callback])
+                                                 callbacks=[self.__callback])
 
         # Release GPU resources when the training process is already complete.
         self.__Release()

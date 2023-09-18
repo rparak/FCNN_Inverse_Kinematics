@@ -1,29 +1,37 @@
-# MLP for Pima Indians Dataset with grid search via sklearn
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import GridSearchCV
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from scikeras.wrappers import KerasClassifier
-from sklearn.model_selection import GridSearchCV
-import numpy as np
- 
-# Function to create model, required for KerasClassifier
-def create_model(optimizer='rmsprop', ea_p12ll=1.0, init='glorot_uniform'):
-    # create model
-    model = Sequential()
-    model.add(Dense(12, input_dim=8, kernel_initializer=init, activation='relu'))
-    model.add(Dense(8, kernel_initializer=init, activation='relu'))
-    model.add(Dense(1, kernel_initializer=init, activation='sigmoid'))
-    # Compile model
-    model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    return model
- 
+from skopt import BayesSearchCV
 
+# fuser -k /dev/nvidia[0]
+
+# Function to create model, required for KerasClassifier
+def create_model(activation='relu'):
+ # create model
+ model = Sequential()
+ model.add(Dense(12, input_shape=(8,), kernel_initializer='uniform', activation=activation))
+ model.add(Dense(1, kernel_initializer='uniform', activation='sigmoid'))
+ # Compile model
+ model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+ return model
+
+# fix random seed for reproducibility
+seed = 7
+tf.random.set_seed(seed)
+# load dataset
+dataset = np.loadtxt("pima-indians-diabetes.csv", delimiter=",")
+# split into input (X) and output (Y) variables
+X = dataset[:,0:8]
+Y = dataset[:,8]
 # create model
-model = KerasClassifier(model=create_model, verbose=0)
-print(model.get_params().keys())
-# grid search epochs, batch size and optimizer
-optimizers = ['rmsprop', 'adam']
-init = ['glorot_uniform', 'normal', 'uniform']
-epochs = [50, 100, 150]
-batches = [5, 10, 20]
-param_grid = dict(optimizer=optimizers, epochs=epochs, batch_size=batches, model__init=init)
-grid = GridSearchCV(estimator=model, param_grid=param_grid)
+model = KerasClassifier(model=create_model, epochs=100, batch_size=10, verbose=0)
+# define the grid search parameters
+activation = ['softmax', 'softplus', 'softsign', 'relu', 'tanh', 'sigmoid', 'hard_sigmoid', 'linear']
+param_grid = dict(model__activation=activation)
+grid = BayesSearchCV(model, param_grid, cv=3)
+grid_result = grid.fit(X, Y)
+# summarize results
+print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))

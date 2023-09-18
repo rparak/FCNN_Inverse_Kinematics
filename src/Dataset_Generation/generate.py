@@ -26,7 +26,7 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 10
+CONST_NUM_OF_DATA = 1000
 #   Number of dataset types.
 CONST_NUM_OF_DATASET_TYPES = 2
 #   The number of datasets in each type.
@@ -87,7 +87,7 @@ def main():
     print('[INFO] The generation of the dataset is in progress.')
 
     # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
-    i = 0; data_t_0 = []; data_t_1_0 = []; data_t_1_1 = []; tolerance = 5
+    i = 0; data_t_0 = []; data_t_1_0 = []; data_t_1_1 = []; tolerance = 4
     while CONST_NUM_OF_DATA > i:
         # Random generation of absolute joint orientations.
         #   Note:

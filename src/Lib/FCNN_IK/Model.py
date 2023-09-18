@@ -352,7 +352,7 @@ class FCNN_Optimizer_Cls(object):
         print(f'[INFO] >> file_path = {self.__file_path}_optimizer_results.txt')
 
     def __Compile_Method_0(self, in_layer_units, in_layer_activation, hidden_layers, hidden_layer_units, kernel_layer_activation,
-                           use_bias, opt, opt_learning_rate) -> None:
+                           use_bias) -> None:
         """
         Description:
             ....
@@ -376,8 +376,7 @@ class FCNN_Optimizer_Cls(object):
                                         use_bias=use_bias))
 
         # Finally, compile the model.
-        return model.compile(optimizer=opt(learning_rate=opt_learning_rate), loss='mse', 
-                             metrics=['accuracy', 'mse', 'mae'])
+        return model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-03), loss='mse', metrics=['accuracy'])
 
     def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
         """
@@ -386,6 +385,7 @@ class FCNN_Optimizer_Cls(object):
         """
         # Initialization of a sequential neural network model.
         model = tf.keras.models.Sequential()
+
         # Set the input layer of the FCNN model architecture.
         model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
                                         activation=Hyperparameters['in_layer_activation']))
@@ -416,35 +416,30 @@ class FCNN_Optimizer_Cls(object):
         Description:
             ...
         """
-        try:
-            assert (self.__use_validation == True and 'hidden_layers_w_d' in Hyperparameters.keys()) or \
-                   (self.__use_validation == False and 'hidden_layers' in Hyperparameters.keys())
-                 
-            if self.__use_validation == True:
-                keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_1, batch_size=64, shuffle=False, verbose=0)
-            else:
-                keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_0, batch_size=64, optimizer=tf.keras.optimizers.Adam, lr=1e-03, shuffle=False, verbose=0,
-                                                  in_layer_units=32, in_layer_activation='relu', hidden_layers=3, hidden_layer_units=32,
-                                                  kernel_layer_activation='relu', use_bias=False)
 
-            print(keras_regressor.get_params().keys())
-            # Bayesian optimization over the desired hyperparameters.
-            opt_bayes_search = skopt.BayesSearchCV(estimator=keras_regressor, search_spaces=Hyperparameters, n_iter=iterations, 
-                                                   cv=cross_validation, scoring='neg_mean_squared_error', verbose=1)
-            
-            # Run fit on the estimator.
-            if self.__use_validation == True:
-                _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled, validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
-            else:
-                _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled)
+ 
+        if self.__use_validation == True:
+            keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_1, batch_size=64, shuffle=False, verbose=0)
+        else:
+            keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_0, batch_size=64, in_layer_units=None, in_layer_activation=None,
+                                              hidden_layers=None, hidden_layer_units=None, kernel_layer_activation=None, use_bias=None, shuffle=False, 
+                                              verbose=0)
 
-            # Save the results of the best parameters along with the score.
-            if save_results == True:
-                self.__Save(str(opt_bayes_search.best_params_), str(opt_bayes_search.best_score_))
+        print(keras_regressor.get_params().keys())
 
-            # Release GPU resources when the training process is already complete.
-            self.__Release()
+        # Bayesian optimization over the desired hyperparameters.
+        opt_bayes_search = skopt.BayesSearchCV(estimator=keras_regressor, search_spaces=Hyperparameters, n_iter=iterations, 
+                                               cv=cross_validation, scoring='neg_mean_squared_error', verbose=1)
+        
+        # Run fit on the estimator.
+        if self.__use_validation == True:
+            _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled, validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
+        else:
+            _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled, batch_size=64, verbose=1)
 
-        except AssertionError as error:
-            print(f'[ERROR] Information: {error}')
-            print(f'[ERROR] The incorrect hyperparameter configuration has been chosen.')
+        # Save the results of the best parameters along with the score.
+        if save_results == True:
+            self.__Save(str(opt_bayes_search.best_params_), str(opt_bayes_search.best_score_))
+
+        # Release GPU resources when the training process is already complete.
+        self.__Release()

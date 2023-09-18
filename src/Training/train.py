@@ -65,7 +65,7 @@ def main():
             y = data[:, 7::].astype('float32').reshape(-1, 1)
 
     # ...
-    FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.9, test_size=0.1, 
+    FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                              file_path=file_path_w)
     #   ...
     FCNN_IK_Trainer_Cls.Compile(Parameters.Trainer.FCNN_HYPERPARAMETERS_METHOD_0)

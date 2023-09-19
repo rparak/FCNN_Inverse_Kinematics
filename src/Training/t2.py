@@ -1,7 +1,16 @@
 from tensorflow import keras
+import tensorflow as tf
 from tensorflow.keras import layers
 import keras_tuner
 import numpy as np
+# https://medium.com/swlh/hyperparameter-tuning-in-keras-tensorflow-2-with-keras-tuner-randomsearch-hyperband-3e212647778f
+# for a in /sys/bus/pci/devices/*; do echo 0 | sudo tee -a $a/numa_node; done
+gpu_arr = tf.config.experimental.list_physical_devices('GPU')
+if gpu_arr:
+    for _, gpu_i in enumerate(gpu_arr):
+        tf.config.experimental.set_memory_growth(gpu_i, True)
+else:
+    print('[INFO] No GPU device was found.')
 
 def build_model(hp):
     model = keras.Sequential()
@@ -14,24 +23,23 @@ def build_model(hp):
         )
     )
     model.add(layers.Dense(10, activation="softmax"))
+
+    opt = keras.optimizers.Adam(learning_rate=hp.Choice("learning_rate", values=[1e-1, 1e-2, 1e-3]))
+
     model.compile(
-        optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"],
+        optimizer=opt, loss="categorical_crossentropy", metrics=["accuracy"],
     )
     return model
 
 #build_model(keras_tuner.HyperParameters())
 
-tuner = keras_tuner.RandomSearch(
+tuner = keras_tuner.BayesianOptimization(
     hypermodel=build_model,
-    objective="val_accuracy",
-    max_trials=3,
-    executions_per_trial=2,
-    overwrite=True,
+    objective="accuracy",
+    max_trials=5,
     directory="my_dir",
     project_name="helloworld",
 )
-#tuner.search_space_summary()
-
 
 (x, y), (x_test, y_test) = keras.datasets.mnist.load_data()
 
@@ -49,4 +57,13 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_val = keras.utils.to_categorical(y_val, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-tuner.search(x_train, y_train, epochs=2, validation_data=(x_val, y_val))
+#tuner.search(x_train, y_train, epochs=10, batch_size=64, validation_data=(x_val, y_val))
+tuner.search(x_train, y_train, epochs=2, batch_size=64, validation_data=None)
+
+# Get the optimal hyperparameters
+best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+print(type(best_hps))
+print(best_hps.get('units'))
+print(best_hps.get('learning_rate'))
+
+keras.backend.clear_session()

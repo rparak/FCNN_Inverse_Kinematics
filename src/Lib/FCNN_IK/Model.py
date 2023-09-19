@@ -12,8 +12,8 @@ import skopt
 import joblib
 # Sklearn (Simple and efficient tools for predictive data analysis) [pip3 install scikit-learn]
 import sklearn.model_selection
-# ...
-from scikeras.wrappers import KerasClassifier
+# KerasTuner (Hyperparameter optimization) [pip3 install keras-tuner]
+import keras_tuner as kt
 # Custom Script:
 #   ../Lib/FCNN_IK/Utilities
 import Lib.FCNN_IK.Utilities as Utilities
@@ -25,7 +25,7 @@ Description:
     Initialization of constants.
 """
 # Locate the path to the project folder.
-CONST_PROJECT_FOLDER = os.getcwd().split('DNN_Inverse_Kinematics')[0] + 'DNN_Inverse_Kinematics'
+CONST_PROJECT_FOLDER = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
 
 class FCNN_Trainer_Cls(object):
     """
@@ -226,7 +226,7 @@ class FCNN_Trainer_Cls(object):
                                                  validation_data=(self.__x_validation_scaled, self.__y_validation_scaled), callbacks=[self.__callback])
         else:
             self.__train_data = self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1,
-                                                 callbacks=[self.__callback])
+                                                 validation_data=None, callbacks=[self.__callback])
 
         # Release GPU resources when the training process is already complete.
         self.__Release()
@@ -235,6 +235,10 @@ class FCNN_Predictor_Cls(object):
     """
     Description:
         ...
+
+        Reference:
+            On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
+                https://arxiv.org/abs/2007.15745
 
     Initialization of the Class:
         Args:
@@ -339,13 +343,18 @@ class FCNN_Optimizer_Cls(object):
 
         tf.keras.backend.clear_session()
 
-    def __Save(self, parameters: str, score: str):
+    def __Save(self, parameters: kt.engine.hyperparameters.hyperparameters.HyperParameters):
         """
         Description:
             ...
         """
-                
-        for _, data_i in enumerate([parameters, score]):
+        if self.__use_validation == True:
+            metrics = []
+        else:
+            metrics = []
+
+        for _, metrics_i in enumerate(metrics):
+            data_i = f'{metrics_i}: {parameters.get(metrics_i)}'
             File_IO.Save(f'{self.__file_path}_use_val_{self.__use_validation}_History', data_i, 'txt', ',')
 
         print(f'[INFO] The results obtained from the optimizer were successfully saved.')
@@ -362,23 +371,23 @@ class FCNN_Optimizer_Cls(object):
         model = tf.keras.models.Sequential()
 
         # Set the input layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(in_layer_units, input_shape=(self.__x_train.shape[1], ), 
-                                        activation=in_layer_activation))
-        
-        if hidden_layers > 0:
-            # Set the hidden layers of the FCNN model architecture.
-            for _ in range(hidden_layers):
-                model.add(tf.keras.layers.Dense(hidden_layer_units, activation=kernel_layer_activation, 
-                                                use_bias=use_bias))
-        
+        self.__model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
+                                               activation=Hyperparameters['in_layer_activation']))
+
+        # Set the hidden layers of the FCNN model architecture.
+        if Hyperparameters['hidden_layers'] > 0:
+            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_units']):
+                self.__model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
+                                                       use_bias=Hyperparameters['use_bias']))
+
         # Set the output layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=kernel_layer_activation, 
-                                        use_bias=use_bias))
+        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
+                                               use_bias=Hyperparameters['use_bias']))
 
         # Finally, compile the model.
         return model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-03), loss='mse', metrics=['accuracy'])
 
-    def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
+    def __Compile_Method_1(self) -> None:
         """
         Description:
             ....
@@ -411,35 +420,40 @@ class FCNN_Optimizer_Cls(object):
         # Finally, compile the model.
         return model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']))
 
-    def Optimize(self, Hyperparameters: tp.Dict, iterations: int, cross_validation: int, save_results: bool):
+    def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, save_results: bool) -> None:
         """
         Description:
             ...
         """
 
- 
+        # Bayesian optimization with Gaussian process over the desired hyperparameters.
         if self.__use_validation == True:
-            keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_1, batch_size=64, shuffle=False, verbose=0)
+            optimizer_method_1 = kt.BayesianOptimization(hypermodel=self.__Compile_Method_1, objective='val_accuracy', max_trials=num_of_trials,
+                                                         directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+            
+            # Start the search for the most suitable model.
+            optimizer_method_1.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
+                                      validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
+            
+            # Get the best hyperparameters determined by the objective function.
+            #   objective = 'val_accuracy'
+            best_hps = optimizer_method_0.get_best_hyperparameters(num_trials=1)[0]
         else:
-            keras_regressor = KerasClassifier(build_fn=self.__Compile_Method_0, batch_size=64, in_layer_units=None, in_layer_activation=None,
-                                              hidden_layers=None, hidden_layer_units=None, kernel_layer_activation=None, use_bias=None, shuffle=False, 
-                                              verbose=0)
+            optimizer_method_0 = kt.BayesianOptimization(hypermodel=self.__Compile_Method_0, objective='accuracy', max_trials=num_of_trials,
+                                                         directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+            
+            # Start the search for the most suitable model.
+            optimizer_method_0.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
+                                      validation_data=None)
+            
+            # Get the best hyperparameters determined by the objective function.
+            #   objective = 'accuracy'
+            best_hps = optimizer_method_0.get_best_hyperparameters(num_trials=1)[0]
 
-        print(keras_regressor.get_params().keys())
-
-        # Bayesian optimization over the desired hyperparameters.
-        opt_bayes_search = skopt.BayesSearchCV(estimator=keras_regressor, search_spaces=Hyperparameters, n_iter=iterations, 
-                                               cv=cross_validation, scoring='neg_mean_squared_error', verbose=1)
-        
-        # Run fit on the estimator.
-        if self.__use_validation == True:
-            _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled, validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
-        else:
-            _ = opt_bayes_search.fit(self.__x_train_scaled, self.__y_train_scaled, batch_size=64, verbose=1)
 
         # Save the results of the best parameters along with the score.
         if save_results == True:
-            self.__Save(str(opt_bayes_search.best_params_), str(opt_bayes_search.best_score_))
+            self.__Save(best_hps)
 
         # Release GPU resources when the training process is already complete.
         self.__Release()

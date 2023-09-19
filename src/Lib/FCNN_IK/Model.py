@@ -6,14 +6,14 @@ import typing as tp
 import numpy as np
 # Tensorflow (Machine learning) [pip3 install tensorflow]
 import tensorflow as tf
-# Scikit-Optimize, or skopt (Sequential model-based optimization) [pip3 install scikit-optimize]
-import skopt
 # Joblib (Lightweight pipelining) [pip3 install joblib]
 import joblib
 # Sklearn (Simple and efficient tools for predictive data analysis) [pip3 install scikit-learn]
 import sklearn.model_selection
 # KerasTuner (Hyperparameter optimization) [pip3 install keras-tuner]
 import keras_tuner as kt
+# Shutil (High-level file operations)
+import shutil
 # Custom Script:
 #   ../Lib/FCNN_IK/Utilities
 import Lib.FCNN_IK.Utilities as Utilities
@@ -26,6 +26,8 @@ Description:
 """
 # Locate the path to the project folder.
 CONST_PROJECT_FOLDER = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
+# Number of hidden layers for training and optimization.
+CONST_NUM_OF_HIDDEN_LAYERS = 6
 
 class FCNN_Trainer_Cls(object):
     """
@@ -114,7 +116,7 @@ class FCNN_Trainer_Cls(object):
 
         tf.keras.backend.clear_session()
 
-    def Save(self):
+    def Save(self) -> None:
         """
         Description:
             ...
@@ -143,7 +145,10 @@ class FCNN_Trainer_Cls(object):
     def __Compile_Method_0(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
-            ....
+            ...
+
+        Args:
+            (1) Hyperparameters [Dictionary {}]: ..
         """
 
         # Set the input layer of the FCNN model architecture.
@@ -167,7 +172,10 @@ class FCNN_Trainer_Cls(object):
     def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
-            ....
+            ...
+
+        Args:
+            (1) Hyperparameters [Dictionary {}]: ..
         """
 
         # Set the input layer of the FCNN model architecture.
@@ -200,6 +208,9 @@ class FCNN_Trainer_Cls(object):
         """
         Description:
             ...
+
+        Args:
+            (1) Hyperparameters [Dictionary {}]: ..
         """
 
         try:
@@ -219,6 +230,10 @@ class FCNN_Trainer_Cls(object):
         """
         Description:
             ...
+
+        Args:
+            (1) epochs [int]: ..
+            (2) batch_size [int]: ..
         """
  
         if self.__use_validation == True:
@@ -235,10 +250,6 @@ class FCNN_Predictor_Cls(object):
     """
     Description:
         ...
-
-        Reference:
-            On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
-                https://arxiv.org/abs/2007.15745
 
     Initialization of the Class:
         Args:
@@ -275,6 +286,10 @@ class FCNN_Optimizer_Cls(object):
     """
     Description:
         ...
+
+        Reference:
+            On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
+                https://arxiv.org/abs/2007.15745
 
     Initialization of the Class:
         Args:
@@ -343,117 +358,152 @@ class FCNN_Optimizer_Cls(object):
 
         tf.keras.backend.clear_session()
 
-    def __Save(self, parameters: kt.engine.hyperparameters.hyperparameters.HyperParameters):
+    def __Save(self, parameters: tp.Dict) -> None:
         """
         Description:
             ...
-        """
-        if self.__use_validation == True:
-            metrics = []
-        else:
-            metrics = []
 
-        for _, metrics_i in enumerate(metrics):
-            data_i = f'{metrics_i}: {parameters.get(metrics_i)}'
-            File_IO.Save(f'{self.__file_path}_use_val_{self.__use_validation}_History', data_i, 'txt', ',')
+        Args:
+            (1) parameters [Dictionary {}]: ..
+        """
+
+        file_name = f'{self.__file_path}_Optimizer_Best_Results_use_validation_{self.__use_validation}.txt'
+
+        # Remove the results file if it already exists.
+        if os.path.isfile(file_name):
+            os.remove(file_name)
+
+        # Write the results obtained from the optimizer.
+        with open(file_name, 'w') as f:
+            for _, (key, value) in enumerate(parameters.items()):
+                f.write(f'{key}: {value}\n')
 
         print(f'[INFO] The results obtained from the optimizer were successfully saved.')
-        print(f'[INFO] >> file_path = {self.__file_path}_optimizer_results.txt')
+        print(f'[INFO] >> file_path = {file_name}')
 
-    def __Compile_Method_0(self, in_layer_units, in_layer_activation, hidden_layers, hidden_layer_units, kernel_layer_activation,
-                           use_bias) -> None:
+    def __Compile_Method_0(self, Hyperparameters: kt.engine.hyperparameters.hyperparameters.HyperParameters) -> tf.keras.Sequential:
         """
         Description:
             ....
+
+        Args:
+            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]]: ...
+
+        Returns:
+            (1) parameter [tf.keras.Sequential]: ...
         """
 
         # Initialization of a sequential neural network model.
         model = tf.keras.models.Sequential()
 
+        # Defined general hyperparameters to be changed.
+        #   Note:
+        #       Other parameters are defined within each layer.
+        use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
+                                                                                                    values=['relu', 'tanh'])
+
         # Set the input layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
-                                               activation=Hyperparameters['in_layer_activation']))
+        model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
+                                        activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh'])))
 
         # Set the hidden layers of the FCNN model architecture.
-        if Hyperparameters['hidden_layers'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_units']):
-                self.__model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                       use_bias=Hyperparameters['use_bias']))
-
+        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+            model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=256, step=32), 
+                                            activation=hidden_layer_activation, use_bias=use_bias))
+        
         # Set the output layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
-                                               use_bias=Hyperparameters['use_bias']))
+        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters.Choice('out_layer_activation', values=['relu', 'tanh']), 
+                                        use_bias=use_bias))
 
         # Finally, compile the model.
-        return model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-03), loss='mse', metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters.Choice('learning_rate', values=[1e-2, 1e-3])), loss='mse', 
+                      metrics=['accuracy'])
+        
+        return model
 
-    def __Compile_Method_1(self) -> None:
+    def __Compile_Method_1(self, Hyperparameters: kt.engine.hyperparameters.hyperparameters.HyperParameters) -> tf.keras.Sequential:
         """
         Description:
             ....
+
+        Args:
+            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]: ...
+
+        Returns:
+            (1) parameter [tf.keras.Sequential]: ...
         """
+
         # Initialization of a sequential neural network model.
         model = tf.keras.models.Sequential()
 
+        # Defined general hyperparameters to be changed.
+        #   Note:
+        #       Other parameters are defined within each layer.
+        use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
+                                                                                                    values=['relu', 'tanh'])
+        layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.005, max_value=0.05, step=0.005)
+
         # Set the input layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
-                                        activation=Hyperparameters['in_layer_activation']))
+        model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
+                                        activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh'])))
+        model.add(tf.keras.layers.Dropout(layer_dropout))
 
         # Set the hidden layers of the FCNN model architecture.
-        #   1\ Hidden layers with dropout layer.
-        if Hyperparameters['hidden_layers_w_d'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_w_d_units']):
-                model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                use_bias=Hyperparameters['use_bias']))
-                model.add(tf.keras.layers.Dropout(Hyperparameters['layer_drop']))
-
-        #   1\ Hidden layers without dropout layer.
-        if Hyperparameters['hidden_layers_wo_d'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_wo_d_units']):
-                model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                use_bias=Hyperparameters['use_bias']))
-            
+        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+            model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=256, step=32), 
+                                            activation=hidden_layer_activation, use_bias=use_bias))
+            model.add(tf.keras.layers.Dropout(layer_dropout))
+        
         # Set the output layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
-                                        use_bias=Hyperparameters['use_bias']))
+        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters.Choice('out_layer_activation', values=['relu', 'tanh']), 
+                                        use_bias=use_bias))
 
         # Finally, compile the model.
-        return model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']))
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters.Choice('learning_rate', values=[1e-2, 1e-3])), loss='mse', 
+                      metrics=['accuracy'])
+        
+        return model
 
     def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, save_results: bool) -> None:
         """
         Description:
             ...
+
+        Args:
+            (1) num_of_trials [int]: ...
+            (1) epochs_per_trial [int]: ...
+            (1) batch_size [int]: ...
+            (4) save_results [bool]:
         """
+
+        # Remove the unnecessary directory.
+        directory_path = f'{CONST_PROJECT_FOLDER}/src/Training/FCNN_Inverse_Kinematics_Optimizer'
+        if os.path.isdir(directory_path):
+            shutil.rmtree(directory_path)
 
         # Bayesian optimization with Gaussian process over the desired hyperparameters.
         if self.__use_validation == True:
-            optimizer_method_1 = kt.BayesianOptimization(hypermodel=self.__Compile_Method_1, objective='val_accuracy', max_trials=num_of_trials,
-                                                         directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+            optimizer = kt.BayesianOptimization(hypermodel=self.__Compile_Method_1, objective=kt.Objective(name='val_accuracy', direction='max'), 
+                                                         max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
             
             # Start the search for the most suitable model.
-            optimizer_method_1.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
-                                      validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
-            
-            # Get the best hyperparameters determined by the objective function.
-            #   objective = 'val_accuracy'
-            best_hps = optimizer_method_0.get_best_hyperparameters(num_trials=1)[0]
+            optimizer.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
+                             validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
         else:
-            optimizer_method_0 = kt.BayesianOptimization(hypermodel=self.__Compile_Method_0, objective='accuracy', max_trials=num_of_trials,
-                                                         directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+            optimizer = kt.BayesianOptimization(hypermodel=self.__Compile_Method_0, objective=kt.Objective(name='accuracy', direction='max'), 
+                                                         max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
             
             # Start the search for the most suitable model.
-            optimizer_method_0.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
-                                      validation_data=None)
-            
-            # Get the best hyperparameters determined by the objective function.
-            #   objective = 'accuracy'
-            best_hps = optimizer_method_0.get_best_hyperparameters(num_trials=1)[0]
+            optimizer.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
+                             validation_data=None)
 
+        # Get the best hyperparameters determined by the objective function.
+        #   objective = 'accuracy/val_accuracy'
+        best_hps = optimizer.get_best_hyperparameters(num_trials=1)[0]
 
         # Save the results of the best parameters along with the score.
         if save_results == True:
-            self.__Save(best_hps)
+            self.__Save(best_hps.values)
 
         # Release GPU resources when the training process is already complete.
         self.__Release()

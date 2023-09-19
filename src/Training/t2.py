@@ -62,8 +62,11 @@ tuner.search(x_train, y_train, epochs=2, batch_size=64, validation_data=None)
 
 # Get the optimal hyperparameters
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-print(type(best_hps))
-print(best_hps.get('units'))
-print(best_hps.get('learning_rate'))
+#print(type(best_hps.values))
+#print(best_hps.get('units'))
+val = best_hps.values
+
+for _, (key, value) in enumerate(val.items()):
+    print(key, value)
 
 keras.backend.clear_session()

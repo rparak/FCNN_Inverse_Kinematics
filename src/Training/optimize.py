@@ -12,8 +12,6 @@ import Lib.Parameters.Robot
 import Lib.Utilities.File_IO as File_IO
 #   ../Lib/FCNN_IK/Model
 import Lib.FCNN_IK.Model
-#   ../Parameters/Optimizer
-import Parameters.Optimizer
 
 """
 Description:
@@ -64,59 +62,12 @@ def main():
             x = data[:, 0:7].astype('float32')
             y = data[:, 7::].astype('float32').reshape(-1, 1)
 
-    # https://github.com/LiYangHart/Hyperparameter-Optimization-of-Machine-Learning-Algorithms/blob/master/HPO_Classification.ipynb
     # ...
-    #FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, file_path=file_path_w)
+    FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
+                                                                 file_path=file_path_w)
     #   ...
-    #FCNN_IK_Optimizer_Cls.Optimize(Parameters.Optimizer.FCNN_HYPERPARAMETERS_METHOD_0, 10, 2,False)
-
-    import numpy as np
-    import tensorflow as tf
-    from tensorflow.keras.datasets import mnist  # Replace with your custom dataset import
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.layers import Dense, Flatten
-    from scikeras.wrappers import KerasClassifier
-    from skopt import BayesSearchCV
-
-    # Define a function to create a Keras model
-    def create_model(learning_rate=0.01, units=64, activation='relu'):
-        model = Sequential()
-        model.add(Flatten(input_shape=(x.shape[1],)))
-        model.add(Dense(units, activation=activation))
-        model.add(Dense(y.shape[1], activation='sigmoid'))
-        optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-        model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-        return model
-
-    # Create a KerasClassifier
-    keras_classifier = KerasClassifier(build_fn=create_model, verbose=0, learning_rate=None, units=None, activation=None)
-
-    print(keras_classifier.get_params().keys())
-    param_grid = dict(learning_rate=[0.001], units=[32], activation=['sigmoid'])
-    print(param_grid)
-
-    # Create BayesSearchCV with KerasClassifier
-    bayes_cv = BayesSearchCV(
-        keras_classifier,
-        param_grid,
-        n_iter=20,  # Number of parameter combinations to try
-        cv=3,       # Number of cross-validation folds
-        n_jobs=8   # Use all available CPU cores
-    )
-
-    bayes_cv.fit(x, y)
-    """
-    # Perform hyperparameter tuning
-    bayes_cv.fit(x, y)
-
-    # Print the best hyperparameters and their corresponding score
-    print("Best Hyperparameters: ", bayes_cv.best_params_)
-    print("Best CV Score: {:.4f}".format(bayes_cv.best_score_))
-
-    # Evaluate the model on the test set
-    test_score = bayes_cv.score(x, y)
-    print("Test Accuracy: {:.4f}".format(test_score))
-    """
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=1, epochs_per_trial=100, batch_size=64, 
+                                   save_results=True)
 
 if __name__ == "__main__":
     sys.exit(main())

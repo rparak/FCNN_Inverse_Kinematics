@@ -12,8 +12,8 @@ import Lib.Parameters.Robot
 import Lib.Utilities.File_IO as File_IO
 #   ../Lib/FCNN_IK/Model
 import Lib.FCNN_IK.Model
-#   ../Parameters/Trainer
-import Parameters.Trainer
+#   ../Hyperparameters/EPSON_LS3_B401S
+import Hyperparameters.EPSON_LS3_B401S
 
 """
 Description:
@@ -68,7 +68,7 @@ def main():
     FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                              file_path=file_path_w)
     #   ...
-    FCNN_IK_Trainer_Cls.Compile(Parameters.Trainer.FCNN_HYPERPARAMETERS_METHOD_0)
+    FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_0_TYPE_0_ID_0_N_1000)
     #   ...
     FCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
     #   ...

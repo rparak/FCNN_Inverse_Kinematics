@@ -156,17 +156,16 @@ class FCNN_Trainer_Cls(object):
                                                activation=Hyperparameters['in_layer_activation']))
 
         # Set the hidden layers of the FCNN model architecture.
-        if Hyperparameters['hidden_layers'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_units']):
-                self.__model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                       use_bias=Hyperparameters['use_bias']))
+        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+            self.__model.add(tf.keras.layers.Dense(Hyperparameters[f'hidden_layer_{i + 1}_units'], activation=Hyperparameters['hidden_layer_activation'], 
+                                                   use_bias=Hyperparameters['use_bias']))
 
         # Set the output layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
+        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['out_layer_activation'], 
                                                use_bias=Hyperparameters['use_bias']))
 
         # Finally, compile the model.
-        self.__model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']), loss='mse', 
+        self.__model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters['learning_rate']), loss='mse', 
                              metrics=['accuracy', 'mse', 'mae'])
 
     def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
@@ -183,25 +182,17 @@ class FCNN_Trainer_Cls(object):
                                                activation=Hyperparameters['in_layer_activation']))
 
         # Set the hidden layers of the FCNN model architecture.
-        #   1\ Hidden layers with dropout layer.
-        if Hyperparameters['hidden_layers_w_d'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_w_d_units']):
-                self.__model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                                use_bias=Hyperparameters['use_bias']))
-                self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_drop']))
+        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+            self.__model.add(tf.keras.layers.Dense(Hyperparameters[f'hidden_layer_{i + 1}_units'], activation=Hyperparameters['hidden_layer_activation'], 
+                                                   use_bias=Hyperparameters['use_bias']))
+            self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_dropout']))
 
-        #   1\ Hidden layers without dropout layer.
-        if Hyperparameters['hidden_layers_wo_d'] > 0:
-            for _, hidden_layer_i in enumerate(Hyperparameters['hidden_layer_wo_d_units']):
-                self.__model.add(tf.keras.layers.Dense(hidden_layer_i, activation=Hyperparameters['kernel_layer_activation'], 
-                                                       use_bias=Hyperparameters['use_bias']))
-            
         # Set the output layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['kernel_layer_activation'], 
+        self.__model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters['out_layer_activation'], 
                                                use_bias=Hyperparameters['use_bias']))
 
         # Finally, compile the model.
-        self.__model.compile(optimizer=Hyperparameters['opt'](learning_rate=Hyperparameters['opt_learning_rate']), loss='mse', 
+        self.__model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters['learning_rate']), loss='mse', 
                              metrics=['accuracy', 'mse', 'mae'])
 
     def Compile(self, Hyperparameters: tp.Dict) -> None:
@@ -214,8 +205,8 @@ class FCNN_Trainer_Cls(object):
         """
 
         try:
-            assert (self.__use_validation == True and 'hidden_layers_w_d' in Hyperparameters.keys()) or \
-                   (self.__use_validation == False and 'hidden_layers' in Hyperparameters.keys())
+            assert (self.__use_validation == True and 'layer_dropout' in Hyperparameters.keys()) or \
+                   (self.__use_validation == False and 'layer_dropout' not in Hyperparameters.keys())
             
             if self.__use_validation == True:
                 self.__Compile_Method_1(Hyperparameters)

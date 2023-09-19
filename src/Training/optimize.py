@@ -66,7 +66,7 @@ def main():
     FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                                  file_path=file_path_w)
     #   ...
-    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=1, epochs_per_trial=100, batch_size=64, 
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=1000, epochs_per_trial=100, batch_size=64, 
                                    save_results=True)
 
 if __name__ == "__main__":

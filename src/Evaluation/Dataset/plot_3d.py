@@ -47,7 +47,7 @@ def main():
     plt.style.use(['science'])
 
     # Create a file path to read the data.
-    file_path = f'{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Type_1/Config_N_{CONST_NUM_OF_DATA}_ID_0'
+    file_path = f'{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}'
     
     # Read the data from a file.
     data = File_IO.Load(file_path, 'pkl', ',')

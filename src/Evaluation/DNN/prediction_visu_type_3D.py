@@ -33,10 +33,6 @@ CONST_SAVE_DATA = False
 # Dataset configuration.
 #   Number of data to be generated.
 CONST_NUM_OF_DATA = 1000
-#   Type of the dataset.
-CONST_DATASET_TYPE = 1
-#   The ID of the dataset in the selected type.
-CONST_DATASET_ID = 0
 
 def main():
     """
@@ -111,7 +107,7 @@ def main():
         plt.get_current_fig_manager().full_screen_toggle()
 
         # Save the results.
-        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/Type_{CONST_DATASET_TYPE}/3D_Config_N_{CONST_NUM_OF_DATA}_ID_{CONST_DATASET_ID}.png', format='png', dpi=300)
+        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/3D_Config_N_{CONST_NUM_OF_DATA}.png', format='png', dpi=300)
     else:
         # Show the result.
         plt.show()

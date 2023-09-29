@@ -26,8 +26,6 @@ Description:
 """
 # Locate the path to the project folder.
 CONST_PROJECT_FOLDER = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
-# Number of hidden layers for training and optimization.
-CONST_NUM_OF_HIDDEN_LAYERS = 6
 
 class FCNN_Trainer_Cls(object):
     """
@@ -156,7 +154,7 @@ class FCNN_Trainer_Cls(object):
                                                activation=Hyperparameters['in_layer_activation']))
 
         # Set the hidden layers of the FCNN model architecture.
-        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+        for i in range(0, Hyperparameters['num_of_hidden_layers']):
             self.__model.add(tf.keras.layers.Dense(Hyperparameters[f'hidden_layer_{i + 1}_units'], activation=Hyperparameters['hidden_layer_activation'], 
                                                    use_bias=Hyperparameters['use_bias']))
 
@@ -182,7 +180,7 @@ class FCNN_Trainer_Cls(object):
                                                activation=Hyperparameters['in_layer_activation']))
 
         # Set the hidden layers of the FCNN model architecture.
-        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+        for i in range(0, Hyperparameters['num_of_hidden_layers']):
             self.__model.add(tf.keras.layers.Dense(Hyperparameters[f'hidden_layer_{i + 1}_units'], activation=Hyperparameters['hidden_layer_activation'], 
                                                    use_bias=Hyperparameters['use_bias']))
             self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_dropout']))
@@ -281,6 +279,17 @@ class FCNN_Optimizer_Cls(object):
         Reference:
             On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
                 https://arxiv.org/abs/2007.15745
+
+        How can I calculate the number of hidden layers?
+            A rough approximation can be obtained using the geometric pyramid rule proposed by Masters (Practical Neural Network 
+            Recipies in C++, 1993).
+
+                N_{h} = sqrt(N_{i}*N_{o}),
+
+            where N_{h} is the number of hidden layers, N_{i} is the number of input neurons, and N_{o} is the number 
+            of output neurons.
+
+            To optimize the number of hidden layers, use the formula above with addition of 1 value.
 
     Initialization of the Class:
         Args:
@@ -391,14 +400,15 @@ class FCNN_Optimizer_Cls(object):
         #   Note:
         #       Other parameters are defined within each layer.
         use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
-                                                                                                    values=['relu', 'tanh'])
+                                                                                                                              values=['relu', 'tanh'])
 
         # Set the input layer of the FCNN model architecture.
         model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
                                         activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh'])))
 
         # Set the hidden layers of the FCNN model architecture.
-        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+        for i in range(0, Hyperparameters.Int('num_of_hidden_layers', min_value=1, max_value=int(((self.__x_train.shape[1] * self.__y_train.shape[1]) ** 0.5)) + 1, 
+                                              step=1)):
             model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=256, step=32), 
                                             activation=hidden_layer_activation, use_bias=use_bias))
         
@@ -432,7 +442,7 @@ class FCNN_Optimizer_Cls(object):
         #       Other parameters are defined within each layer.
         use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
                                                                                                     values=['relu', 'tanh'])
-        layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.005, max_value=0.05, step=0.005)
+        layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.01, max_value=0.05, step=0.005)
 
         # Set the input layer of the FCNN model architecture.
         model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
@@ -440,7 +450,8 @@ class FCNN_Optimizer_Cls(object):
         model.add(tf.keras.layers.Dropout(layer_dropout))
 
         # Set the hidden layers of the FCNN model architecture.
-        for i in range(0, CONST_NUM_OF_HIDDEN_LAYERS):
+        for i in range(0, Hyperparameters.Int('num_of_hidden_layers', min_value=1, max_value=int(((self.__x_train.shape[1] * self.__y_train.shape[1]) ** 0.5)) + 1, 
+                                              step=1)):
             model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=256, step=32), 
                                             activation=hidden_layer_activation, use_bias=use_bias))
             model.add(tf.keras.layers.Dropout(layer_dropout))
@@ -475,14 +486,14 @@ class FCNN_Optimizer_Cls(object):
         # Bayesian optimization with Gaussian process over the desired hyperparameters.
         if self.__use_validation == True:
             optimizer = kt.BayesianOptimization(hypermodel=self.__Compile_Method_1, objective=kt.Objective(name='val_accuracy', direction='max'), 
-                                                         max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+                                                max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
             
             # Start the search for the most suitable model.
             optimizer.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 
                              validation_data=(self.__x_validation_scaled, self.__y_validation_scaled))
         else:
             optimizer = kt.BayesianOptimization(hypermodel=self.__Compile_Method_0, objective=kt.Objective(name='accuracy', direction='max'), 
-                                                         max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
+                                                max_trials=num_of_trials, directory='FCNN_Inverse_Kinematics_Optimizer', project_name='FCNN_Inverse_Kinematics')
             
             # Start the search for the most suitable model.
             optimizer.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size, 

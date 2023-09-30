@@ -140,7 +140,7 @@ class FCNN_Trainer_Cls(object):
         # Save the scaler parameter for input/output data.
         joblib.dump(self.__scaler_x, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
         joblib.dump(self.__scaler_y, f'{self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
-        print(f'[INFO] TThe input/output scalers have been successfully saved..')
+        print(f'[INFO] The input/output scalers have been successfully saved..')
         print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_Scaler_x.pkl')
         print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_Scaler_y.pkl')
 

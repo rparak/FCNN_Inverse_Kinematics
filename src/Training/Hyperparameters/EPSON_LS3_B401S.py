@@ -1,12 +1,13 @@
 """
 Desription:
-    The structure of the hyperparameters.
-
-    Note:
-        Method to be used for training.
-            Method 0: No test (validation) partition.
-            Method 1: With test (validation) partition.
+    Hyperparameter structure for training an Inverse Kinematics (IK) task 
+    using a Fully-Connected Neural Network (FCNN).
 """
+
+# Method 0: 
+#   No test (validation) partition.
+# Number of generated data:
+#   N = 1000
 FCNN_HPS_METHOD_0_N_1000 = {
     'use_bias': False,
     'in_layer_units': 64,
@@ -23,6 +24,10 @@ FCNN_HPS_METHOD_0_N_1000 = {
     'learning_rate': 0.001
 }
 
+# Method 0: 
+#   No test (validation) partition.
+# Number of generated data:
+#   N = 10000
 FCNN_HPS_METHOD_0_N_10000 = {
     'use_bias': False,
     'in_layer_units': 64,
@@ -39,6 +44,10 @@ FCNN_HPS_METHOD_0_N_10000 = {
     'learning_rate': 0.001
 }
 
+# Method 0: 
+#   No test (validation) partition.
+# Number of generated data:
+#   N = 100000
 FCNN_HPS_METHOD_0_N_100000 = {
     'use_bias': False,
     'in_layer_units': 64,
@@ -55,6 +64,10 @@ FCNN_HPS_METHOD_0_N_100000 = {
     'learning_rate': 0.001
 }
 
+# Method 1: 
+#   With test (validation) partition.
+# Number of generated data:
+#   N = 1000
 FCNN_HPS_METHOD_1_N_1000 = {
     'use_bias': False,
     'layer_dropout': 0.025,
@@ -72,6 +85,10 @@ FCNN_HPS_METHOD_1_N_1000 = {
     'learning_rate': 0.001
 }
 
+# Method 1: 
+#   With test (validation) partition.
+# Number of generated data:
+#   N = 10000
 FCNN_HPS_METHOD_1_N_10000 = {
     'use_bias': False,
     'layer_dropout': 0.025,
@@ -89,6 +106,10 @@ FCNN_HPS_METHOD_1_N_10000 = {
     'learning_rate': 0.001
 }
 
+# Method 1: 
+#   With test (validation) partition.
+# Number of generated data:
+#   N = 100000
 FCNN_HPS_METHOD_1_N_100000 = {
     'use_bias': False,
     'layer_dropout': 0.025,

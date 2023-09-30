@@ -52,15 +52,19 @@ def main():
     # Read the data from a file.
     data = File_IO.Load(file_path, 'pkl', ',')
 
+    # The tolerance of the data.
+    tolerance = 4
+
     # Express the data as x, y, z.
-    x = data[:, 0]; y = data[:, 1]; z = data[:, 2]
+    x = np.round(data[:, 0], tolerance); y = np.round(data[:, 1], tolerance)
+    z = np.round(data[:, 2], tolerance)
 
     # Create a figure.
     figure = plt.figure()
     ax = figure.add_subplot(projection='3d')
 
     # Plot the robot's dataset dependent on the input data from the file.
-    ax.plot(np.round(x, 4), np.round(y, 4), np.round(z, 4), 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0],
+    ax.plot(x, y, z, 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0],
             label=f'3D Positions (x, y, z): N = {CONST_NUM_OF_DATA}')
 
     # Set parameters of the graph (plot).

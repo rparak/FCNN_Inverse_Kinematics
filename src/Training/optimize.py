@@ -22,13 +22,15 @@ CONST_ROBOT_TYPE = Lib.Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
 CONST_NUM_OF_DATA = 10000
-#   ...
+#   Method to be used for training.
+#       Method 0: No test (validation) partition.
+#       Method 1: With test (validation) partition.
 CONST_DATASET_METHOD = 0
 
 def main():
     """
     Description:
-        ...
+        A program for hyperparameter optimization of the Fully-Connected Neural Network (FCNN).
     """
 
     # Locate the path to the project folder.
@@ -49,14 +51,15 @@ def main():
     #   Output of the NN: y -> theta(0 .. n)
     x = data[:, 0:7].astype('float32'); y = data[:, -Robot_Str.Theta.Zero.size:].astype('float32')
     
-    # ...
+    # Optimization of the hyperparameters for the Fully-Connected Neural Network (FCNN).
+    #   1\ Initialization.
     if CONST_DATASET_METHOD == 0:
         FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                                     file_path=file_path_w)
     elif CONST_DATASET_METHOD == 1:
         FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.8, test_size=0.2, 
                                                                     file_path=file_path_w)
-    #   ...
+    #   2\ Optimization.
     FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=100, epochs_per_trial=100, batch_size=64, 
                                    save_results=True)
     

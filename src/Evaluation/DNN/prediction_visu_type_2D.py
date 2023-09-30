@@ -53,12 +53,15 @@ def main():
     # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
     (abs_j_pos_0, abs_j_pos_1) = Configuration.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
 
+    # The tolerance of the data.
+    tolerance = 4
+
     # Generation of multi-axis position trajectories from input parameters.
     theta_arr = []
     for i, (th_actual, th_desired) in enumerate(zip(abs_j_pos_0, abs_j_pos_1)):
         (theta_arr_i, _, _) = Polynomial_Cls.Generate(th_actual, th_desired, 0.0, 0.0, 0.0, 0.0,
                                                       Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
-        theta_arr.append(theta_arr_i)
+        theta_arr.append(np.round(theta_arr_i, tolerance))
 
         # Create a figure.
         _, ax = plt.subplots()

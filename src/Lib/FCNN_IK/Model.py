@@ -30,27 +30,37 @@ CONST_PROJECT_FOLDER = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_I
 class FCNN_Trainer_Cls(object):
     """
     Description:
-        fully-connected neural network (FCNN)
+        A specific class for training an Inverse Kinematics (IK) task using a Fully-Connected Neural Network (FCNN).
+
+        Note:
+            If the value of test_size in the input parameters is not equal to 0.0, it means that the dataset should 
+            be split, and the method for training with validation should be used.
 
     Initialization of the Class:
         Args:
-            (1) ... [...]: ...
-            (..) file_path [string]: The specified path of the file without extension (format).
+            (1) x [Vector<float>]: Input data.
+            (2) y [Vector<float>]: Output (target) data.
+            (3) train_size [float]: The size of the training partition.
+            (4) test_size [float]: The size of the validation partition.
+            (5) file_path [string]: The specified path of the file without extension (format).
 
         Example:
             Initialization:
                 # Assignment of the variables.
-                ...
+                #   Hyperparameters of a specific robotic structure 
+                #   obtained from optimization.
+                Hyperparameters_Str = Hyperparameters.EPSON_LS3_B401S
+                #   In/Out data.
+                x_in  = Dataset[..]
+                y_out = Dataset[..]
 
                 # Initialization of the class.
-                Cls = FCNN_Trainer_Cls()
-
+                Cls = FCNN_Trainer_Cls(x=x_in, y=y_out, train_size=1.0, test_size=0.0,
+                                       '../..')
             Features:
-                # Properties of the class.
-                ...
-
                 # Functions of the class.
-                ...
+                Cls.Compile(Hyperparameters_Str); Cls.Train(epochs=100, batch_size=64)
+                Cls.Save()
     """
         
     def __init__(self, x: tp.List[float], y: tp.List[float], train_size: float, test_size: float,
@@ -117,7 +127,10 @@ class FCNN_Trainer_Cls(object):
     def Save(self) -> None:
         """
         Description:
-            ...
+            A function to save important files from the training.
+
+            Note:
+                The files can be found in the file path specified in the input parameters of the class.
         """
 
         # Save the scaler parameter for input/output data.
@@ -143,10 +156,11 @@ class FCNN_Trainer_Cls(object):
     def __Compile_Method_0(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
-            ...
+            A function to compile the model with method number 0, for training the model without 
+            using a validation partition.
 
         Args:
-            (1) Hyperparameters [Dictionary {}]: ..
+            (1) Hyperparameters [Dictionary {..}]: The structure of the hyperparameters.
         """
 
         # Set the input layer of the FCNN model architecture.
@@ -169,10 +183,11 @@ class FCNN_Trainer_Cls(object):
     def __Compile_Method_1(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
-            ...
+            A function to compile the model with method number 1, for training the model
+            using a validation partition.
 
         Args:
-            (1) Hyperparameters [Dictionary {}]: ..
+            (1) Hyperparameters [Dictionary {..}]: The structure of the hyperparameters.
         """
 
         # Set the input layer of the FCNN model architecture.
@@ -197,10 +212,19 @@ class FCNN_Trainer_Cls(object):
     def Compile(self, Hyperparameters: tp.Dict) -> None:
         """
         Description:
-            ...
+            A function to compile the model.
+
+            Note:
+                The model will be configured with the losses and metrics.
 
         Args:
-            (1) Hyperparameters [Dictionary {}]: ..
+            (1) Hyperparameters [Dictionary {..}]: The structure of the hyperparameters.
+                                                    For more information about hyperparameters, see the script below:
+                                                        ../Training/Hyperparameters/{robot_name}.py,
+
+                                                        where the {robot_name} is the name of the individual robotic 
+                                                        structure.
+
         """
 
         try:
@@ -219,11 +243,11 @@ class FCNN_Trainer_Cls(object):
     def Train(self, epochs: int, batch_size: int) -> None:
         """
         Description:
-            ...
+            A function to train the Fully-Connected Neural Network (FCNN) model.
 
         Args:
-            (1) epochs [int]: ..
-            (2) batch_size [int]: ..
+            (1) epochs [int]: The number of epochs (iterations) to train the model.
+            (2) batch_size [int]: The number of samples processed before the model is updated.
         """
  
         if self.__use_validation == True:
@@ -275,11 +299,11 @@ class FCNN_Predictor_Cls(object):
 class FCNN_Optimizer_Cls(object):
     """
     Description:
-        ...
+        A specific class for hyperparameter optimization of the Fully-Connected Neural Network (FCNN).
 
-        Reference:
-            On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
-                https://arxiv.org/abs/2007.15745
+        Note:
+            If the value of test_size in the input parameters is not equal to 0.0, it means that the dataset should 
+            be split, and the method for training with validation should be used.
 
         How can I calculate the number of hidden layers?
             A rough approximation can be obtained using the geometric pyramid rule proposed by Masters (Practical Neural Network 
@@ -292,24 +316,32 @@ class FCNN_Optimizer_Cls(object):
 
             To optimize the number of hidden layers, use the formula above with addition of 1 value.
 
+        Reference:
+            On Hyperparameter Optimization of Machine Learning Algorithms: Theory and Practice, Li Yang and Abdallah Shami 
+                https://arxiv.org/abs/2007.15745
+
     Initialization of the Class:
         Args:
-            (1) ... [...]: ...
+            (1) x [Vector<float>]: Input data.
+            (2) y [Vector<float>]: Output (target) data.
+            (3) train_size [float]: The size of the training partition.
+            (4) test_size [float]: The size of the validation partition.
+            (5) file_path [string]: The specified path of the file without extension (format).
 
         Example:
             Initialization:
                 # Assignment of the variables.
-                ...
+                #   In/Out data.
+                x_in  = Dataset[..]
+                y_out = Dataset[..]
 
                 # Initialization of the class.
-                Cls = FCNN_Optimizer_Cls()
-
+                Cls = FCNN_Optimizer_Cls(x=x_in, y=y_out, train_size=1.0, test_size=0.0,
+                                         '../..')
             Features:
-                # Properties of the class.
-                ...
-
                 # Functions of the class.
-                ...
+                Cls.Optimize(num_of_trials=100, epochs_per_trial=100, batch_size=64, 
+                             save_results=True)
     """
         
     def __init__(self, x: tp.List[float], y: tp.List[float], train_size: float, test_size: float,
@@ -362,8 +394,10 @@ class FCNN_Optimizer_Cls(object):
     def __Save(self, parameters: tp.Dict) -> None:
         """
         Description:
-            ...
+            A function to save important files from the optimization.
 
+            Note:
+                The files can be found in the file path specified in the input parameters of the class.
         Args:
             (1) parameters [Dictionary {}]: ..
         """
@@ -385,13 +419,17 @@ class FCNN_Optimizer_Cls(object):
     def __Compile_Method_0(self, Hyperparameters: kt.engine.hyperparameters.hyperparameters.HyperParameters) -> tf.keras.Sequential:
         """
         Description:
-            ....
+            A function to compile the model with method number 0, for training the model without using a validation partition.
+
+            Note:
+                The function will be called for each optimization trial.
 
         Args:
-            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]]: ...
+            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]]: The structure of the hyperparameters 
+                                                                                                      to be optimized.
 
         Returns:
-            (1) parameter [tf.keras.Sequential]: ...
+            (1) parameter [tf.keras.Sequential]: A model grouping layers into an object with training and inference features.
         """
 
         # Initialization of a sequential neural network model.
@@ -426,13 +464,17 @@ class FCNN_Optimizer_Cls(object):
     def __Compile_Method_1(self, Hyperparameters: kt.engine.hyperparameters.hyperparameters.HyperParameters) -> tf.keras.Sequential:
         """
         Description:
-            ....
+            A function to compile the model with method number 1, for training the model using a validation partition.
+
+            Note:
+                The function will be called for each optimization trial.
 
         Args:
-            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]: ...
+            (1) Hyperparameters [kt.engine.hyperparameters.hyperparameters.HyperParameters(object)]]: The structure of the hyperparameters 
+                                                                                                      to be optimized.
 
         Returns:
-            (1) parameter [tf.keras.Sequential]: ...
+            (1) parameter [tf.keras.Sequential]: A model grouping layers into an object with training and inference features.
         """
 
         # Initialization of a sequential neural network model.
@@ -443,7 +485,7 @@ class FCNN_Optimizer_Cls(object):
         #       Other parameters are defined within each layer.
         use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
                                                                                                     values=['relu', 'tanh'])
-        layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.01, max_value=0.05, step=0.005)
+        layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.01, max_value=0.05, step=0.01)
 
         # Set the input layer of the FCNN model architecture.
         model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
@@ -470,13 +512,13 @@ class FCNN_Optimizer_Cls(object):
     def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, save_results: bool) -> None:
         """
         Description:
-            ...
+            A function to optimize the Fully-Connected Neural Network (FCNN) model.
 
         Args:
-            (1) num_of_trials [int]: ...
-            (1) epochs_per_trial [int]: ...
-            (1) batch_size [int]: ...
-            (4) save_results [bool]:
+            (1) num_of_trials [int]: The number of trials to be used in hyperparameter optimization.
+            (2) epochs_per_trial [int]: The number of epochs (iterations) to train the model per trial.
+            (3) batch_size [int]: The number of samples processed before the model is updated.
+            (4) save_results [bool]: Information about whether the optimization results will be saved.
         """
 
         # Remove the unnecessary directory.

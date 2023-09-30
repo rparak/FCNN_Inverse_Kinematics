@@ -1,10 +1,11 @@
-
-# Name ..
-# FCNN_HPS_METHOD_{0,1}
-
 """
 Desription:
-    ...
+    The structure of the hyperparameters.
+
+    Note:
+        Method to be used for training.
+            Method 0: No test (validation) partition.
+            Method 1: With test (validation) partition.
 """
 FCNN_HPS_METHOD_0_N_1000 = {
     'use_bias': False,

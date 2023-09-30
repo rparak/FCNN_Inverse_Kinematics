@@ -59,13 +59,17 @@ def main():
                                                       Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
         theta_arr.append(theta_arr_i)
 
+    # The tolerance of the data.
+    tolerance = 4
+
     # Obtain the homogeneous transformation matrix using forward kinematics from 
     # the generated multi-axis position trajectories.
-    x = []; y = []; z = []
+    x = []; y = []; z = []; 
     for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float32).T):
         T = Kinematics.Forward_Kinematics(theta_arr_i, 'Fast', Robot_Str)[1]
         # Store the acquired data.
-        x.append(T.p.x); y.append(T.p.y); z.append(T.p.z)
+        x.append(np.round(T.p.x, tolerance)); y.append(np.round(T.p.y, tolerance))
+        z.append(np.round(T.p.z, tolerance))
 
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
@@ -75,7 +79,7 @@ def main():
     ax = figure.add_subplot(projection='3d')
 
     # Visualization of relevant structures.
-    ax.plot(np.round(x, 4), np.round(y, 4), np.round(z, 4), '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
+    ax.plot(x, y, z, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
             markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Trajectory')
 
     # Set parameters of the graph (plot).

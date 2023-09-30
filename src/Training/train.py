@@ -23,7 +23,9 @@ Description:
 CONST_ROBOT_TYPE = Lib.Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 100000
+#   ...
+CONST_DATASET_METHOD = 0
 
 def main():
     """
@@ -50,14 +52,19 @@ def main():
     x = data[:, 0:7].astype('float32'); y = data[:, -Robot_Str.Theta.Zero.size:].astype('float32')
 
     # ...
-    FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
+    #   ...
+    if CONST_DATASET_METHOD == 0:
+        FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                              file_path=file_path_w)
+        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_0_N_1000)
+    elif CONST_DATASET_METHOD == 1:
+        FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.8, test_size=0.2, 
+                                                             file_path=file_path_w)
+        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_1_N_1000)
     #   ...
-    FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_0_TYPE_0_ID_0_N_1000)
+    FCNN_IK_Trainer_Cls.Train(epochs=10000, batch_size=64)
     #   ...
-    FCNN_IK_Trainer_Cls.Train(epochs=10, batch_size=64)
-    #   ...
-    #DCNN_IK_Trainer_Cls.Save()
+    FCNN_IK_Trainer_Cls.Save()
 
 
 if __name__ == "__main__":

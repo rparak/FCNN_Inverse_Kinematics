@@ -21,9 +21,9 @@ Description:
 CONST_ROBOT_TYPE = Lib.Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 10000
 #   ...
-CONST_DATASET_METHOD = 1
+CONST_DATASET_METHOD = 0
 
 def main():
     """
@@ -54,10 +54,10 @@ def main():
         FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                                     file_path=file_path_w)
     elif CONST_DATASET_METHOD == 1:
-        FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.9, test_size=0.1, 
+        FCNN_IK_Optimizer_Cls = Lib.FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.8, test_size=0.2, 
                                                                     file_path=file_path_w)
     #   ...
-    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=500, epochs_per_trial=100, batch_size=64, 
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=100, epochs_per_trial=100, batch_size=64, 
                                    save_results=True)
     
 if __name__ == "__main__":

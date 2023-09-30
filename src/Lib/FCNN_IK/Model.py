@@ -178,7 +178,8 @@ class FCNN_Trainer_Cls(object):
         # Set the input layer of the FCNN model architecture.
         self.__model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
                                                activation=Hyperparameters['in_layer_activation']))
-
+        self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_dropout']))
+        
         # Set the hidden layers of the FCNN model architecture.
         for i in range(0, Hyperparameters['num_of_hidden_layers']):
             self.__model.add(tf.keras.layers.Dense(Hyperparameters[f'hidden_layer_{i + 1}_units'], activation=Hyperparameters['hidden_layer_activation'], 

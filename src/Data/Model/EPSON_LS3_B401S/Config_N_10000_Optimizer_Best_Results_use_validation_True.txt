@@ -1,0 +1,11 @@
+use_bias: 0
+hidden_layer_activation: relu
+layer_dropout: 0.03
+in_layer_units: 32
+in_layer_activation: tanh
+num_of_hidden_layers: 3
+hidden_layer_1_units: 160
+out_layer_activation: tanh
+learning_rate: 0.001
+hidden_layer_2_units: 224
+hidden_layer_3_units: 256

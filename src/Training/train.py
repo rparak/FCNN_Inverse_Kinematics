@@ -58,11 +58,11 @@ def main():
     if CONST_DATASET_METHOD == 0:
         FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=1.0, test_size=0.0, 
                                                                  file_path=file_path_w)
-        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_0_N_1000)
+        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_0)
     elif CONST_DATASET_METHOD == 1:
         FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.8, test_size=0.2, 
                                                                  file_path=file_path_w)
-        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_1_N_1000)
+        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_1_N)
     #   3\ Train.
     FCNN_IK_Trainer_Cls.Train(epochs=10000, batch_size=64)
     #   4\ Save.

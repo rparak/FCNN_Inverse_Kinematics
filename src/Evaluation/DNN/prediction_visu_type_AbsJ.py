@@ -68,7 +68,7 @@ def main():
 
         # Visualization of relevant structures.
         ax.plot(Polynomial_Cls.t, theta_arr[i], '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
-                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Absolute Joint Position')
+                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
 
         # Set parameters of the graph (plot).
         #   Set the x ticks.
@@ -93,7 +93,7 @@ def main():
             plt.get_current_fig_manager().full_screen_toggle()
 
             # Save the results.
-            plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/2D_Theta_{i}_Config_N_{CONST_NUM_OF_DATA}.png', format='png', dpi=300)
+            plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/AbsJ_Theta_{i}_Config_N_{CONST_NUM_OF_DATA}.png', format='png', dpi=300)
         else:
             # Show the result.
             plt.show()

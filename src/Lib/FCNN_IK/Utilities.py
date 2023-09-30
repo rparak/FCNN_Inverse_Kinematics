@@ -26,7 +26,7 @@ def Scale_Data(range: tp.List[float], data: tp.List[float]) -> tp.Tuple[sklearn.
 def Transform_Data_With_Scaler(scaler: sklearn.preprocessing.MinMaxScaler, data: tp.List[float]) -> tp.List[float]:
     """
     Description:
-        Transform of data using an the scale parameter.
+        Transform of data using the scale parameter.
 
     Args:
         (1) scaler [sklearn.preprocessing.MinMaxScaler(object)]: Class of the min-max scaler.

@@ -38,8 +38,12 @@ class FCNN_Trainer_Cls(object):
 
     Initialization of the Class:
         Args:
-            (1) x [Vector<float>]: Input data.
-            (2) y [Vector<float>]: Output (target) data.
+            (1) x [Vector<float> nxm]: Input data.
+                                        Note:
+                                            Where n is the number of data and m is the number of input parameters.
+            (2) y [Vector<float> nxk]: Output (target) data.
+                                        Note:
+                                            Where n is the number of data and k is the number of output parameters.
             (3) train_size [float]: The size of the training partition.
             (4) test_size [float]: The size of the validation partition.
             (5) file_path [string]: The specified path of the file without extension (format).
@@ -51,8 +55,8 @@ class FCNN_Trainer_Cls(object):
                 #   obtained from optimization.
                 Hyperparameters_Str = Hyperparameters.EPSON_LS3_B401S
                 #   In/Out data.
-                x_in  = Dataset[..]
-                y_out = Dataset[..]
+                x_in  = Dataset[:, ..]
+                y_out = Dataset[:, ..]
 
                 # Initialization of the class.
                 Cls = FCNN_Trainer_Cls(x=x_in, y=y_out, train_size=1.0, test_size=0.0,
@@ -263,38 +267,59 @@ class FCNN_Trainer_Cls(object):
 class FCNN_Predictor_Cls(object):
     """
     Description:
-        ...
+        A specific class for predicting the absolute joint position of the robotic arm using a Fully-Connected 
+        Neural Network (FCNN) trained with Forward Kinematics (FK).
 
     Initialization of the Class:
         Args:
-            (1) ... [...]: ...
+            (1) scaler_x_file_path [string]: The specified path to the file of the input data scaler.
+            (2) scaler_y_file_path [string]: The specified path to the file of the output data scaler.
+            (3) model_file_path [string]: The specified path to the file of the trained model.
 
         Example:
             Initialization:
-                # Assignment of the variables.
-                ...
-
                 # Initialization of the class.
-                Cls = FCNN_Predictor_Cls()
+                Cls = FCNN_Predictor_Cls('../..', '../..', 
+                                         '../..')
 
             Features:
-                # Properties of the class.
-                ...
-
                 # Functions of the class.
-                ...
+                Cls.Predict([p(x, y, z), q(w, x, y, z)])
     """
         
-    def __init__(self) -> None:
-        pass  
+    def __init__(self, scaler_x_file_path: str, scaler_y_file_path: str, model_file_path: str) -> None:
+        # Load the scaler parameter for input/output data.
+        self.__scaler_x = joblib.load(scaler_x_file_path)
+        self.__scaler_y = joblib.load(scaler_y_file_path)
 
-    def __Release(self) -> None:
+        # Load the trained model from the folder.
+        self.__model = tf.keras.models.load_mode(model_file_path)
+
+    def Predict(self, x: tp.List[float]) -> tp.List[float]:
         """
         Description:
-            Function to release GPU resources when the training process is already complete.
+            A function to predict the absolute joint position of the robotic arm from the input 
+            position and orientation of the end-effector.
+
+        Args:
+            (1) x [Vector<float> 1x7]: Input data as TCP (Tool Center Point) of the robotic arm.
+                                        Note:
+                                            Defined as position (x, y, z) and orientation 
+                                            in quaternions (w, x, y, z).
+
+        Returns:
+            (1) parameter [Vector<float> 1xm]: Output (target) data as absolute joint position of the robotic arm.
+                                                Note:
+                                                    Where m is the number of joints.
         """
 
-        tf.keras.backend.clear_session()
+        # Transform of data using the scale parameter.
+        x_transfored = Utilities.Transform_Data_With_Scaler(self.__scaler_x, x)
+
+        # Generates output predictions from input transformed data.
+        y = self.__model.predict(x_transfored)
+
+        return Utilities.Inverse_Data_With_Scaler(self.__scaler_y, y)
 
 class FCNN_Optimizer_Cls(object):
     """
@@ -322,8 +347,12 @@ class FCNN_Optimizer_Cls(object):
 
     Initialization of the Class:
         Args:
-            (1) x [Vector<float>]: Input data.
-            (2) y [Vector<float>]: Output (target) data.
+            (1) x [Vector<float> nxm]: Input data.
+                                        Note:
+                                            Where n is the number of data and m is the number of input parameters.
+            (2) y [Vector<float> nxk]: Output (target) data.
+                                        Note:
+                                            Where n is the number of data and k is the number of output parameters.
             (3) train_size [float]: The size of the training partition.
             (4) test_size [float]: The size of the validation partition.
             (5) file_path [string]: The specified path of the file without extension (format).
@@ -332,8 +361,8 @@ class FCNN_Optimizer_Cls(object):
             Initialization:
                 # Assignment of the variables.
                 #   In/Out data.
-                x_in  = Dataset[..]
-                y_out = Dataset[..]
+                x_in  = Dataset[:, ..]
+                y_out = Dataset[:, ..]
 
                 # Initialization of the class.
                 Cls = FCNN_Optimizer_Cls(x=x_in, y=y_out, train_size=1.0, test_size=0.0,
@@ -398,8 +427,6 @@ class FCNN_Optimizer_Cls(object):
 
             Note:
                 The files can be found in the file path specified in the input parameters of the class.
-        Args:
-            (1) parameters [Dictionary {}]: ..
         """
 
         file_name = f'{self.__file_path}_Optimizer_Best_Results_use_validation_{self.__use_validation}.txt'
@@ -550,5 +577,5 @@ class FCNN_Optimizer_Cls(object):
         if save_results == True:
             self.__Save(best_hps.values)
 
-        # Release GPU resources when the training process is already complete.
+        # Release GPU resources when the optimization process is already complete.
         self.__Release()

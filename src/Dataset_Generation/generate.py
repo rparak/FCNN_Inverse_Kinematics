@@ -57,7 +57,6 @@ def main():
     if os.path.isfile(f'{file_path}.pkl'):
         os.remove(f'{file_path}.pkl')
 
-    
     # Initialization of data to show the process flow.
     percentage_offset = CONST_NUM_OF_DATA/10; percentage_idx = 1
 

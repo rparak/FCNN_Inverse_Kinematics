@@ -82,5 +82,32 @@ def main():
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
 
+    # orange = 1.0,0.75,0.5,1.0
+    
+    # Create a figure.
+    _, ax = plt.subplots()
+
+    # Visualization of relevant structures.
+    ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+
+    # Show the best result as a circle in the graph.
+    ax.scatter(id, data[id, 2], marker='o', color='#a64d79', alpha=1.0, label='best result')
+
+    # Set parameters of the graph (plot).
+    #   Label.
+    ax.set_xlabel(r'Epoch', fontsize=15, labelpad=10)
+    ax.set_ylabel(r'Mean Squared Error (MSE)', fontsize=15, labelpad=10) 
+    #   Set parameters of the visualization.
+    ax.grid(which='major', linewidth = 0.15, linestyle = '--')
+    # Get handles and labels for the legend.
+    handles, labels = plt.gca().get_legend_handles_labels()
+    # Remove duplicate labels.
+    legend = dict(zip(labels, handles))
+    # Show the labels (legends) of the graph.
+    ax.legend(legend.values(), legend.keys(), fontsize=10.0)
+
+    # Show the result.
+    plt.show()
+    
 if __name__ == '__main__':
     sys.exit(main())

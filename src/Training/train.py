@@ -23,11 +23,11 @@ Description:
 CONST_ROBOT_TYPE = Lib.Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 10000
 #   Method to be used for training.
 #       Method 0: No test (validation) partition.
 #       Method 1: With test (validation) partition.
-CONST_DATASET_METHOD = 0
+CONST_DATASET_METHOD = 1
 
 def main():
     """
@@ -62,7 +62,7 @@ def main():
     elif CONST_DATASET_METHOD == 1:
         FCNN_IK_Trainer_Cls = Lib.FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.8, test_size=0.2, 
                                                                  file_path=file_path_w)
-        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_1_N)
+        FCNN_IK_Trainer_Cls.Compile(Hyperparameters.EPSON_LS3_B401S.FCNN_HPS_METHOD_1)
     #   3\ Train.
     FCNN_IK_Trainer_Cls.Train(epochs=10000, batch_size=64)
     #   4\ Save.

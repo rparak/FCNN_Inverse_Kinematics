@@ -79,7 +79,7 @@ def main():
         q_w.append(np.round(q.w, tolerance)); q_x.append(np.round(q.x, tolerance))
         q_y.append(np.round(q.y, tolerance)); q_z.append(np.round(q.z, tolerance))
 
-    # ...
+    # Display TCP(Tool Center Point) parameters.
     y_label = [r'x(t) in meters', r'y(t) in meters', r'z(t) in meters', r'$q_{w}(t)$ in [-]', 
                r'$q_{x}(t)$ in [-]', r'$q_{y}(t)$ in [-]', r'$q_{z}(t)$ in [-]']
     for i, TPC_i in enumerate([x, y, z, q_w, q_x, q_y, q_z]):

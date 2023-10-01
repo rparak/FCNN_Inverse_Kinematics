@@ -168,7 +168,7 @@ class FCNN_Trainer_Cls(object):
         """
 
         # Set the input layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
+        self.__model.add(tf.keras.layers.Dense(self.__x_train.shape[1], input_shape=(self.__x_train.shape[1], ), 
                                                activation=Hyperparameters['in_layer_activation']))
 
         # Set the hidden layers of the FCNN model architecture.
@@ -195,7 +195,7 @@ class FCNN_Trainer_Cls(object):
         """
 
         # Set the input layer of the FCNN model architecture.
-        self.__model.add(tf.keras.layers.Dense(Hyperparameters['in_layer_units'], input_shape=(self.__x_train.shape[1], ), 
+        self.__model.add(tf.keras.layers.Dense(self.__x_train.shape[1], input_shape=(self.__x_train.shape[1], ), 
                                                activation=Hyperparameters['in_layer_activation']))
         self.__model.add(tf.keras.layers.Dropout(Hyperparameters['layer_dropout']))
         
@@ -469,7 +469,7 @@ class FCNN_Optimizer_Cls(object):
                                                                                                                               values=['relu', 'tanh'])
 
         # Set the input layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
+        model.add(tf.keras.layers.Dense(self.__x_train.shape[1], input_shape=(self.__x_train.shape[1],), 
                                         activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh'])))
 
         # Set the hidden layers of the FCNN model architecture.
@@ -515,7 +515,7 @@ class FCNN_Optimizer_Cls(object):
         layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.01, max_value=0.05, step=0.01)
 
         # Set the input layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(Hyperparameters.Int('in_layer_units', min_value=32, max_value=64, step=32), input_shape=(self.__x_train.shape[1],), 
+        model.add(tf.keras.layers.Dense(self.__x_train.shape[1], input_shape=(self.__x_train.shape[1],), 
                                         activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh'])))
         model.add(tf.keras.layers.Dropout(layer_dropout))
 

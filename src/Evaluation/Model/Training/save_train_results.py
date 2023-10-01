@@ -16,6 +16,8 @@ import scienceplots
 import Lib.Parameters.Robot as Parameters
 #   ../Lib/Utilities/File_IO
 import Lib.Utilities.File_IO as File_IO
+#   ../Lib/Transformation/Utilities/Mathematics
+import Lib.Transformation.Utilities.Mathematics as Mathematics
 
 """
 Description:
@@ -52,18 +54,30 @@ def main():
     if CONST_DATASET_METHOD == 0:
         data = File_IO.Load(f'{file_path_r}_use_val_False_History', 'txt', ',')
         # Get the index with the best loss (mse) selected by the trainer.
-        idx = np.minimum(data[:, 0])
+        (id, _) = Mathematics.Min(data[:, 0])
     elif CONST_DATASET_METHOD == 1:
         data = File_IO.Load(f'{file_path_r}_use_val_True_History', 'txt', ',')
         # Get the index with the best loss (val_mse) selected by the trainer.
-        idx = np.minimum(data[:, 0])
+        (id, _) = Mathematics.Min(data[:, 0])
 
     # Display the results as the values shown in the console.
     print('[INFO] Evaluation Criteria: Fully-Connected Neural Network (FCNN)')
     print(f'[INFO] The name of the dataset: {file_path_w}')
-    print(f'[INFO] The best results were found in the {idx} iteration.')
-    print('[INFO]  Mean Squared Error (MSE):')
-    print(f'[INFO]  [train = ..., valid = ...]')
+    print(f'[INFO] The best results were found in the {id} iteration.')
+    if CONST_DATASET_METHOD == 0:
+        print('[INFO]  Accuracy:')
+        print(f'[INFO]  [train = {data[id, 1]:.08f}]')
+        print('[INFO]  Mean Squared Error (MSE):')
+        print(f'[INFO]  [train = {data[id, 2]:.08f}]')
+        print('[INFO]  Mean Absolute Error (MAE):')
+        print(f'[INFO]  [train = {data[id, 3]:.08f}]')
+    elif CONST_DATASET_METHOD == 1:
+        print('[INFO]  Accuracy:')
+        print(f'[INFO]  [train = {data[id, 1]:.08f}, valid = ..]')
+        print('[INFO]  Mean Squared Error (MSE):')
+        print(f'[INFO]  [train = {data[id, 2]:.08f}, valid = ..]')
+        print('[INFO]  Mean Absolute Error (MAE):')
+        print(f'[INFO]  [train = {data[id, 3]:.08f}, valid = ..]')   
     
     # Set the parameters for the scientific style.
     plt.style.use(['science'])

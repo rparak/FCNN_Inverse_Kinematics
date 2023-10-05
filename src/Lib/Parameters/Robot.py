@@ -172,33 +172,33 @@ EPSON_LS3_B401S_Str = Robot_Parameters_Str(Name='EPSON_LS3_B401S', Id=1)
 #        [0.0, 1.0, 0.0, 0.0],
 #        [0.0, 0.0, 1.0, 0.0],
 #        [0.0, 0.0, 0.0, 1.0]]
-EPSON_LS3_B401S_Str.T.Base = HTM_Cls(None, np.float32)
+EPSON_LS3_B401S_Str.T.Base = HTM_Cls(None, np.float64)
 # End-effector (tool):
 #   1\ None: Identity Matrix
 #       [[1.0, 0.0, 0.0, 0.0],
 #        [0.0, 1.0, 0.0, 0.0],
 #        [0.0, 0.0, 1.0, 0.0],
 #        [0.0, 0.0, 0.0, 1.0]]
-EPSON_LS3_B401S_Str.T.End_Effector = HTM_Cls(None, np.float32)
+EPSON_LS3_B401S_Str.T.End_Effector = HTM_Cls(None, np.float64)
 # Denavit-Hartenberg (DH)
 EPSON_LS3_B401S_Str.DH.Standard = np.array([[0.0, 0.225,  0.1731,               0.0],
                                             [0.0, 0.175,  0.0499, 3.141592653589793],
                                             [0.0,   0.0,     0.0,               0.0],
-                                            [0.0,   0.0,  0.0785,               0.0]], dtype = np.float32) 
+                                            [0.0,   0.0,  0.0785,               0.0]], dtype = np.float64) 
 EPSON_LS3_B401S_Str.DH.Modified = np.array([[0.0,   0.0,  0.1731,               0.0],
                                             [0.0, 0.225,  0.0499,               0.0],
                                             [0.0, 0.175,     0.0, 3.141592653589793],
-                                            [0.0,   0.0,  0.0785,               0.0]], dtype = np.float32) 
+                                            [0.0,   0.0,  0.0785,               0.0]], dtype = np.float64) 
 # Zero/Home absolute position of each joint.
 EPSON_LS3_B401S_Str.Theta.Zero = np.array([0.0, 0.0, 0.0, 0.0], 
-                                          dtype = np.float32)
+                                          dtype = np.float64)
 EPSON_LS3_B401S_Str.Theta.Home = np.array([Mathematics.Degree_To_Radian(90.0), Mathematics.Degree_To_Radian(0.0), 0.0, Mathematics.Degree_To_Radian(0.0)],
-                                          dtype = np.float32)
+                                          dtype = np.float64)
 # Limits of absolute joint position.
 EPSON_LS3_B401S_Str.Theta.Limit = np.array([[-0.6981317007977318, 3.839724354387525], 
                                             [ -2.443460952792061, 2.443460952792061], 
                                             [                0.0,             0.150], 
-                                            [ -3.141592653589793, 3.141592653589793]], dtype = np.float32)
+                                            [ -3.141592653589793, 3.141592653589793]], dtype = np.float64)
 # Parameters of the object (Blender robot arm).
 EPSON_LS3_B401S_Str.Theta.Name = [f'Joint_1_{EPSON_LS3_B401S_Str.Name}_ID_{EPSON_LS3_B401S_Str.Id:03}', 
                                   f'Joint_2_{EPSON_LS3_B401S_Str.Name}_ID_{EPSON_LS3_B401S_Str.Id:03}', 

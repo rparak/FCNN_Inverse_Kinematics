@@ -82,7 +82,7 @@ def main():
     # Obtain the homogeneous transformation matrix using forward kinematics from 
     # the generated multi-axis position trajectories.
     x = []; y = []; z = []; q_w = []; q_x = []; q_y = []; q_z = []
-    for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float32).T):
+    for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float64).T):
         T = Kinematics.Forward_Kinematics(theta_arr_i, 'Fast', Robot_Str)[1]
         # Store the acquired data.
         #   Position (x, y, z).

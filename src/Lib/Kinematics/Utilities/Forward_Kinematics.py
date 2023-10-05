@@ -30,7 +30,7 @@ def __FKF_EPSON_LS3_B401S(theta: tp.List[float], Robot_Parameters_Str: Parameter
     c_th_013 = np.cos(th_013); s_th_013 = np.sin(th_013)
 
     # Computation of the homogeneous end-effector transformation matrix {T}
-    T = np.array(np.identity(4), dtype=np.float32)
+    T = np.array(np.identity(4), dtype=np.float64)
     T[0,0] = c_th_013
     T[0,1] = s_th_013
     T[0,2] = 0.0

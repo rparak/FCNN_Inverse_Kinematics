@@ -152,7 +152,7 @@ class FCNN_Trainer_Cls(object):
         
         # Save the data from the training.
         if self.__train_data != None:
-            for _, data_i in enumerate(np.array(list(self.__train_data.history.values()), dtype=np.float32).T):
+            for _, data_i in enumerate(np.array(list(self.__train_data.history.values()), dtype=np.float64).T):
                 File_IO.Save(f'{self.__file_path}_use_val_{self.__use_validation}_History', data_i, 'txt', ',')
             print(f'[INFO] The training data history has been successfully saved.')
             print(f'[INFO] >> file_path = {self.__file_path}_use_val_{self.__use_validation}_History.txt')

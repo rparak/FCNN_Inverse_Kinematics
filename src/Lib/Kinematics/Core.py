@@ -65,7 +65,7 @@ def DH_Standard(theta: float, a: float, d: float, alpha: float) -> tp.List[tp.Li
     return HTM_Cls([[np.cos(theta), (-1.0)*(np.sin(theta))*np.cos(alpha),            np.sin(theta)*np.sin(alpha), a*np.cos(theta)],
                     [np.sin(theta),          np.cos(theta)*np.cos(alpha), (-1.0)*(np.cos(theta))*(np.sin(alpha)), a*np.sin(theta)],
                     [          0.0,                        np.sin(alpha),                          np.cos(alpha),               d],
-                    [          0.0,                                  0.0,                                    0.0,             1.0]], np.float32)
+                    [          0.0,                                  0.0,                                    0.0,             1.0]], np.float64)
 
 def __Forward_Kinematics_Standard(theta: tp.List[float], Robot_Parameters_Str: Parameters.Robot_Parameters_Str) -> tp.Tuple[tp.List[float], 
                                                                                                                             tp.List[tp.List[float]]]:
@@ -118,7 +118,7 @@ def DH_Modified(theta: float, a: float, d: float, alpha: float) -> tp.List[tp.Li
     return HTM_Cls([[np.cos(theta)              ,        (-1.0)*np.sin(theta),                  0.0,                      a],
                     [np.sin(theta)*np.cos(alpha), np.cos(theta)*np.cos(alpha), (-1.0)*np.sin(alpha), (-1.0)*np.sin(alpha)*d],
                     [np.sin(theta)*np.sin(alpha), np.cos(theta)*np.sin(alpha),        np.cos(alpha),        np.cos(alpha)*d],
-                    [                        0.0,                         0.0,                  0.0,                    1.0]], np.float32)
+                    [                        0.0,                         0.0,                  0.0,                    1.0]], np.float64)
 
 def __Forward_Kinematics_Modified(theta: tp.List[float], Robot_Parameters_Str: Parameters.Robot_Parameters_Str) -> tp.Tuple[tp.List[float], 
                                                                                                                             tp.List[tp.List[float]]]:

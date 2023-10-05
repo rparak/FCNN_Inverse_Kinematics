@@ -91,7 +91,7 @@ def main():
     T_simpl = Forward_Kinematics_Modified(theta, Robot_Str)
 
     print('[INFO] Code generation.')
-    print('T = np.array(np.identity(4), dtype=np.float32)')
+    print('T = np.array(np.identity(4), dtype=np.float64)')
 
     for i, T_i_simpl in enumerate(T_simpl.tolist()):
         for j, T_ij_simpl in enumerate(T_i_simpl):

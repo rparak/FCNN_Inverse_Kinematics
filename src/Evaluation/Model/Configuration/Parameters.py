@@ -32,7 +32,7 @@ def Get_Absolute_Joint_Positions(name: str) -> tp.Tuple[tp.List[float],
 
     return {
         'EPSON_LS3_B401S': (np.array([Mathematics.Degree_To_Radian(0.0), Mathematics.Degree_To_Radian(0.0), 0.0, Mathematics.Degree_To_Radian(0.0)], 
-                                     dtype = np.float32), 
+                                     dtype = np.float64), 
                             np.array([Mathematics.Degree_To_Radian(115.0), Mathematics.Degree_To_Radian(-20.0), 0.10, Mathematics.Degree_To_Radian(15.0)],
-                                     dtype = np.float32))
+                                     dtype = np.float64))
     }[name]

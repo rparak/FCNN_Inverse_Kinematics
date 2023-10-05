@@ -37,10 +37,10 @@ def Load(file_path: str, format: str, separator: str) -> tp.List[tp.Union[float,
             for line in f:
                 # Splits a string into a list with the specified delimiter (,) 
                 # and converts to a float.
-                data_tmp.append(np.float32(line.split(separator)))
+                data_tmp.append(np.float64(line.split(separator)))
 
     # Convert a list to an array.
-    data = np.array(data_tmp, dtype=np.float32)
+    data = np.array(data_tmp, dtype=np.float64)
     
     # Close the file after loading the data.
     f.close()

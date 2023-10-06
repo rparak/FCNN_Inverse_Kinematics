@@ -6,14 +6,6 @@ import typing as tp
 #   ../Lib/Transformation/Utilities/Mathematics
 import Lib.Transformation.Utilities.Mathematics as Mathematics
 
-"""
-Description:
-    Initialization of constants.
-"""
-# Initial and final time constraints.
-CONST_T_0 = 0.0
-CONST_T_1 = 1.0
-
 def Get_Absolute_Joint_Positions(name: str) -> tp.Tuple[tp.List[float],
                                                         tp.List[float]]:
     """

@@ -6,7 +6,7 @@ sys.path.append('../..')
 import time
 # Sympy (Symbolic mathematics) [pip3 install sympy]
 import sympy as sp
-# Custom Script:
+# Custom Lib.:
 #   ../Lib/Manipulator/Parameters
 import Lib.Parameters.Robot as Parameters
 

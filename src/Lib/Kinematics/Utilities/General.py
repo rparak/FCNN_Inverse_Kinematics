@@ -1,6 +1,6 @@
 # Typing (Support for type hints)
 import typing as tp
-# Custom Script:
+# Custom Lib.:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
 

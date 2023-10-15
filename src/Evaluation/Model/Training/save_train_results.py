@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import os
 # SciencePlots (Matplotlib styles for scientific plotting) [pip3 install SciencePlots]
 import scienceplots
-# Custom Script:
+# Custom Lib.:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
 #   ../Lib/Utilities/File_IO

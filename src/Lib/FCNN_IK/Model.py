@@ -14,7 +14,7 @@ import sklearn.model_selection
 import keras_tuner as kt
 # Shutil (High-level file operations)
 import shutil
-# Custom Script:
+# Custom Lib.:
 #   ../Lib/FCNN_IK/Utilities
 import Lib.FCNN_IK.Utilities as Utilities
 #   ../Lib/Utilities/File_IO

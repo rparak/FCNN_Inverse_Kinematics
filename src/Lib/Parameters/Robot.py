@@ -4,7 +4,7 @@ import numpy as np
 from dataclasses import dataclass, field
 # Typing (Support for type hints)
 import typing as tp
-# Custom Library:
+# Custom Lib.:
 #   ../Lib/Transformation/Core
 from Lib.Transformation.Core import Homogeneous_Transformation_Matrix_Cls as HTM_Cls
 #   ../Lib/Transformation/Utilities/Mathematics

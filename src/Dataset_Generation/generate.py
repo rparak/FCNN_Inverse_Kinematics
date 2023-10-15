@@ -9,7 +9,7 @@ import os
 import time
 # Numpy (Array computing) [pip3 install numpy]
 import numpy as np
-# Custom Library:
+# Custom Lib.:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
 #   ../Lib/Kinematics/Core

@@ -16,10 +16,7 @@ class DH_Parameters_Str:
     Description:
         The auxiliary structure of the Denavit-Hartenberg (DH) parameters.
 
-        Note 1:
-            Private structure.
-
-        Note 2:
+        Note:
             DH (Denavit-Hartenberg) parameters: 
     
             (1) theta_zero [Vector<float>]: Joint angle (Theta_i). Rotation part in radians.
@@ -52,9 +49,6 @@ class Theta_Parameters_Str(object):
     """
     Description:
         The auxiliary structure of the joint (theta) parameters.
-
-        Note:
-            Private structure.
     """
 
     # Zero absolute position of each joint.
@@ -88,9 +82,6 @@ class T_Parameters_Str:
     """
     Description:
         The auxiliary structure of the homogeneous transformation matrix {T} parameters.
-
-        Note:
-            Private structure.
     """
 
     # Homogeneous transformation matrix of the base.

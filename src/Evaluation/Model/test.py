@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 # Custom Lib.:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
+#   ../Lib/Transformation/Utilities/Mathematics
+import Lib.Transformation.Utilities.Mathematics as Mathematics
 #   ../Lib/Kinematics/Core
 import Lib.Kinematics.Core as Kinematics
 #   ../Lib/Trajectory/Utilities
@@ -38,7 +40,7 @@ CONST_NUM_OF_DATA = 100000
 #   Method to be used for training.
 #       Method 0: No test (validation) partition.
 #       Method 1: With test (validation) partition.
-CONST_DATASET_METHOD = 0
+CONST_DATASET_METHOD = 1
 
 def main():
     """
@@ -84,42 +86,42 @@ def main():
     # the generated multi-axis position trajectories.
     e_p = []; e_q = []
     for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float64).T):
+        # Obtain the desired homogeneous transformation matrix.
         T = Kinematics.Forward_Kinematics(theta_arr_i, 'Fast', Robot_Str)[1]
-        p = np.round(T.p.all(), tolerance); q = T.Get_Rotation('QUATERNION').all()
+        #   Get the translational and rotational part from the desired transformation matrix.
+        p = np.round(T.p.all(), tolerance); q = np.round(T.Get_Rotation('QUATERNION').all(), tolerance)
 
-        # ...
+        # Predict the absolute joint position of the robotic arm from the input 
+        # position and orientation of the end-effector.
         data = FCNN_IK_Predictor_Cls.Predict(np.concatenate((p, q)).astype('float32'))[0]
 
-        # ...
+        # Obtain the predicted homogeneous transformation matrix.
         T_1 = Kinematics.Forward_Kinematics(data, 'Fast', Robot_Str)[1]
-        p_1 = np.round(T_1.p.all(), tolerance); q_1 = T_1.Get_Rotation('QUATERNION').all()
         
-        #e.append(np.linalg.norm(data[0] - theta_arr_i))
-        print(np.linalg.norm(p - p_1))
-        print(np.linalg.norm(q - q_1))
+        # Obtain the absolute error of position and orientation.
+        e_p.append(Mathematics.Euclidean_Norm((T_1.p - T.p).all())); e_q.append(T_1.Get_Rotation('QUATERNION').Distance('Euclidean', T.Get_Rotation('QUATERNION')))
 
-    """
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
     label = [r'$e_{p}(\hat{t})$', r'$e_{q}(\hat{t})$']; title = ['Absolute Position Error (APE)', 
                                                                  'Absolute Orientation Error (AOE)']
-    for i, data_i in enumerate(data.T):
+    for i, e_i in enumerate([e_p, e_q]):
         # Create a figure.
         _, ax = plt.subplots()
 
         # Visualization of relevant structures.
-        ax.plot(Polynomial_Cls.t, data_i, 'x', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label=label[i])
-        ax.plot(Polynomial_Cls.t, [np.mean(data_i)] * t_hat.size, '--', color='#8d8d8d', linewidth=1.5, label=f'Mean Absolute Error (MAE)')
+        ax.plot(Polynomial_Cls.t, e_i, 'x', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label=label[i])
+        ax.plot(Polynomial_Cls.t, [np.mean(e_i)] * Polynomial_Cls.t.size, '--', color='#8d8d8d', linewidth=1.5, label=f'Mean Absolute Error (MAE)')
 
         # Set parameters of the graph (plot).
         ax.set_title(f'{title[i]}', fontsize=25, pad=25.0)
         #   Set the x ticks.
-        ax.set_xticks(np.arange(np.min(t_hat) - 0.1, np.max(t_hat) + 0.1, 0.1))
+        ax.set_xticks(np.arange(np.min(Polynomial_Cls.t) - 0.1, np.max(Polynomial_Cls.t) + 0.1, 0.1))
         #   Set the y ticks.
-        tick_y_tmp = (np.max(data_i) - np.min(data_i))/10.0
+        tick_y_tmp = (np.max(e_i) - np.min(e_i))/10.0
         tick_y = tick_y_tmp if tick_y_tmp != 0.0 else 0.1
-        ax.set_yticks(np.arange(np.min(data_i) - tick_y, np.max(data_i) + tick_y, tick_y))
+        ax.set_yticks(np.arange(np.min(e_i) - tick_y, np.max(e_i) + tick_y, tick_y))
         #   Label
         ax.set_xlabel(r'Normalized time $\hat{t}$ in the range of [0.0, 1.0]', fontsize=15, labelpad=10)
         ax.set_ylabel(f'Absolute error {label[i]} in millimeters', fontsize=15, labelpad=10) 
@@ -134,9 +136,9 @@ def main():
 
         # Display the results as the values shown in the console.
         print(f'[INFO] Iteration: {i}')
-        print(f'[INFO] max(label{i}) = {np.max(data_i)} in mm')
-        print(f'[INFO] min(label{i}) = {np.min(data_i)} in mm')
-        print(f'[INFO] MAE = {np.mean(data_i)} in mm')
+        print(f'[INFO] max(label{i}) = {np.max(e_i)} in mm')
+        print(f'[INFO] min(label{i}) = {np.min(e_i)} in mm')
+        print(f'[INFO] MAE = {np.mean(e_i)} in mm')
 
         if CONST_SAVE_DATA == True:
             # Set the full scree mode.
@@ -148,7 +150,6 @@ def main():
         else:
             # Show the result.
             plt.show()
-    """
 
 if __name__ == "__main__":
     sys.exit(main())

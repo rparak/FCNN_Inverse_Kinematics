@@ -3,14 +3,8 @@ import sys
 #   Add access if it is not in the system path.
 if '../..' + 'src' not in sys.path:
     sys.path.append('../../..')
-# Numpy (Array computing) [pip3 install numpy]
-import numpy as np
-# Matplotlib (Visualization) [pip3 install matplotlib]
-import matplotlib.pyplot as plt
 # OS (Operating system interfaces)
 import os
-# SciencePlots (Matplotlib styles for scientific plotting) [pip3 install SciencePlots]
-import scienceplots
 # Custom Lib.:
 #   ../Lib/Parameters/Robot
 import Lib.Parameters.Robot as Parameters
@@ -80,42 +74,6 @@ def main():
         print(f'[INFO]  [train = {data[id, 2]:.08f}, valid = {data[id, 6]:.08f}]')
         print('[INFO]  Mean Absolute Error (MAE):')
         print(f'[INFO]  [train = {data[id, 3]:.08f}, valid = {data[id, 7]:.08f}]')   
-    
-    # Set the parameters for the scientific style.
-    plt.style.use(['science'])
-
-    # Create a figure.
-    _, ax = plt.subplots()
-
-    # Visualization of relevant structures.
-    if CONST_DATASET_METHOD == 0:
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-    elif CONST_DATASET_METHOD == 1:
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-        ax.plot(np.arange(0,len(data[:, 3])), data[:, 6], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
-
-    # Set parameters of the graph (plot).
-    #   Label.
-    ax.set_xlabel(r'Epoch', fontsize=15, labelpad=10)
-    ax.set_ylabel(r'Mean Squared Error (MSE)', fontsize=15, labelpad=10) 
-    #   Set parameters of the visualization.
-    ax.grid(which='major', linewidth = 0.15, linestyle = '--')
-    # Get handles and labels for the legend.
-    handles, labels = plt.gca().get_legend_handles_labels()
-    # Remove duplicate labels.
-    legend = dict(zip(labels, handles))
-    # Show the labels (legends) of the graph.
-    ax.legend(legend.values(), legend.keys(), fontsize=10.0)
-
-    if CONST_SAVE_DATA == True:
-        # Set the full scree mode.
-        plt.get_current_fig_manager().full_screen_toggle()
-
-        # Save the results.
-        plt.savefig(f'{project_folder}/src/Data/Training/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}_Method_{CONST_DATASET_METHOD}.png', format='png', dpi=300)
-    else:
-        # Show the result.
-        plt.show()
     
 if __name__ == '__main__':
     sys.exit(main())

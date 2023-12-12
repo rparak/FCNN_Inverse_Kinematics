@@ -23,11 +23,11 @@ Description:
 CONST_ROBOT_TYPE = Lib.Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 100000
+CONST_NUM_OF_DATA = 1000
 #   Method to be used for training.
 #       Method 0: No test (validation) partition.
 #       Method 1: With test (validation) partition.
-CONST_DATASET_METHOD = 1
+CONST_DATASET_METHOD = 0
 
 def main():
     """

@@ -314,12 +314,12 @@ class FCNN_Predictor_Cls(object):
         """
 
         # Transform of data using the scale parameter.
-        x_transfored = Utilities.Transform_Data_With_Scaler(self.__scaler_x, x)
+        x_transfored = Utilities.Transform_Data_With_Scaler(self.__scaler_x, x.astype('float32').reshape(1, x.shape[0]))
 
         # Generates output predictions from input transformed data.
         y = self.__model.predict(x_transfored)
 
-        return Utilities.Inverse_Data_With_Scaler(self.__scaler_y, y)
+        return Utilities.Inverse_Data_With_Scaler(self.__scaler_y, y.astype('float32').reshape(1, y.shape[1]))
 
 class FCNN_Optimizer_Cls(object):
     """

@@ -29,11 +29,11 @@ CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 CONST_SAVE_DATA = False
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 100000
+CONST_NUM_OF_DATA = 1000
 #   Method to be used for training.
 #       Method 0: No test (validation) partition.
 #       Method 1: With test (validation) partition.
-CONST_DATASET_METHOD = 1
+CONST_DATASET_METHOD = 0
 
 def main():
     """
@@ -112,7 +112,7 @@ def main():
         plt.get_current_fig_manager().full_screen_toggle()
 
         # Save the results.
-        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/TCP_{i}_Config_N_{CONST_NUM_OF_DATA}.png', format='png', dpi=300)
+        plt.savefig(f'{project_folder}/src/Data/Training/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}_Method_{CONST_DATASET_METHOD}.png', format='png', dpi=300)
     else:
         # Show the result.
         plt.show()

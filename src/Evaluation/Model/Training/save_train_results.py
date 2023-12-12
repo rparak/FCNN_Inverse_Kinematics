@@ -25,6 +25,8 @@ Description:
 """
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
+# Save the data to a file.
+CONST_SAVE_DATA = False
 # Dataset configuration.
 #   Number of data to be generated.
 CONST_NUM_OF_DATA = 100000
@@ -105,8 +107,15 @@ def main():
     # Show the labels (legends) of the graph.
     ax.legend(legend.values(), legend.keys(), fontsize=10.0)
 
-    # Show the result.
-    plt.show()
+    if CONST_SAVE_DATA == True:
+        # Set the full scree mode.
+        plt.get_current_fig_manager().full_screen_toggle()
+
+        # Save the results.
+        plt.savefig(f'{project_folder}/src/Data/Prediction/{Robot_Str.Name}/TCP_{i}_Config_N_{CONST_NUM_OF_DATA}.png', format='png', dpi=300)
+    else:
+        # Show the result.
+        plt.show()
     
 if __name__ == '__main__':
     sys.exit(main())

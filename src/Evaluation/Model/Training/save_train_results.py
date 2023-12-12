@@ -27,11 +27,11 @@ Description:
 CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # Dataset configuration.
 #   Number of data to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 100000
 #   Method to be used for training.
 #       Method 0: No test (validation) partition.
 #       Method 1: With test (validation) partition.
-CONST_DATASET_METHOD = 0
+CONST_DATASET_METHOD = 1
 
 def main():
     """
@@ -58,7 +58,7 @@ def main():
     elif CONST_DATASET_METHOD == 1:
         data = File_IO.Load(f'{file_path_r}_use_val_True_History', 'txt', ',')
         # Get the index with the best loss (val_mse) selected by the trainer.
-        (id, _) = Mathematics.Min(data[:, 0])
+        (id, _) = Mathematics.Min(data[:, 3])
 
     # Display the results as the values shown in the console.
     print('[INFO] Evaluation Criteria: Fully-Connected Neural Network (FCNN)')
@@ -73,25 +73,24 @@ def main():
         print(f'[INFO]  [train = {data[id, 3]:.08f}]')
     elif CONST_DATASET_METHOD == 1:
         print('[INFO]  Accuracy:')
-        print(f'[INFO]  [train = {data[id, 1]:.08f}, valid = ..]')
+        print(f'[INFO]  [train = {data[id, 1]:.08f}, valid = {data[id, 5]:.08f}]')
         print('[INFO]  Mean Squared Error (MSE):')
-        print(f'[INFO]  [train = {data[id, 2]:.08f}, valid = ..]')
+        print(f'[INFO]  [train = {data[id, 2]:.08f}, valid = {data[id, 6]:.08f}]')
         print('[INFO]  Mean Absolute Error (MAE):')
-        print(f'[INFO]  [train = {data[id, 3]:.08f}, valid = ..]')   
+        print(f'[INFO]  [train = {data[id, 3]:.08f}, valid = {data[id, 7]:.08f}]')   
     
     # Set the parameters for the scientific style.
     plt.style.use(['science'])
 
-    # orange = 1.0,0.75,0.5,1.0
-    
     # Create a figure.
     _, ax = plt.subplots()
 
     # Visualization of relevant structures.
-    ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-
-    # Show the best result as a circle in the graph.
-    ax.scatter(id, data[id, 2], marker='o', color='#a64d79', alpha=1.0, label='best result')
+    if CONST_DATASET_METHOD == 0:
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+    elif CONST_DATASET_METHOD == 1:
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+        ax.plot(np.arange(0,len(data[:, 3])), data[:, 6], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
 
     # Set parameters of the graph (plot).
     #   Label.

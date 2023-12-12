@@ -293,7 +293,7 @@ class FCNN_Predictor_Cls(object):
         self.__scaler_y = joblib.load(scaler_y_file_path)
 
         # Load the trained model from the folder.
-        self.__model = tf.keras.models.load_mode(model_file_path)
+        self.__model = tf.keras.models.load_model(model_file_path)
 
     def Predict(self, x: tp.List[float]) -> tp.List[float]:
         """

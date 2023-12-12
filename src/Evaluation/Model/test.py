@@ -63,6 +63,7 @@ def main():
                                                                      f'{project_folder}/src/Data/Model/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}_use_val_True_Scaler_x.pkl', 
                                                                      f'{project_folder}/src/Data/Model/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}_use_val_True.h5')
     
+    """
     # Initialization of the class to generate trajectory.
     Polynomial_Cls = Lib.Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=0.01)
     
@@ -92,6 +93,6 @@ def main():
         q = T.Get_Rotation('QUATERNION')
         q_w.append(np.round(q.w, tolerance)); q_x.append(np.round(q.x, tolerance))
         q_y.append(np.round(q.y, tolerance)); q_z.append(np.round(q.z, tolerance))
-
+    """
 if __name__ == "__main__":
     sys.exit(main())

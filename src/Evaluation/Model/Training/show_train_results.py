@@ -32,7 +32,7 @@ CONST_DATASET_METHOD = 0
 def main():
     """
     Description:
-        A program to save result data from training a dataset. Metrics such as Mean Squared Error, Accuracy, 
+        A program to show result data from training a dataset. Metrics such as Mean Squared Error, Accuracy, 
         Mean Absolute Error, etc. were used to evaluate the performance of the proposed network.
     """
         

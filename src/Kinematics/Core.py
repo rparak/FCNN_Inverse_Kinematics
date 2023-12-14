@@ -36,7 +36,25 @@ def Forward_Kinematics(theta: tp.List[float], Robot_Parameters_Str: Parameters.R
                                                                                                   tp.List[float]]:
     """
     Description:
-        ...
+        Calculation of forward kinematics using the fast method. The function was created by simplifying 
+        the standard Denavit-Hartenberg (DH) method.
+
+        Note:
+            The calculation only works for the RR robotic structure (called SCARA -> simplified version).
+
+    Args:
+        (1) theta [Vector<float>]: Desired absolute joint position in radians.
+        (2) Robot_Parameters_Str [Robot_Parameters_Str(object)]: The structure of the main parameters of the robot.
+
+    Returns:
+        (1) parameter [Vector<bool> 1x2]: The result is a vector of values with a warning if the limit 
+                                          is exceeded. 
+                                            Note:
+                                                The value in the vector is "True" if the desired absolute 
+                                                joint positions are within the limits, and "False" if they 
+                                                are not.
+        (2) paramter [Vector<float> 1x2]: The obtained TCP (tool center point) in Cartesian coordinates (also called 
+                                          orthogonal coordinates) defined as a vector in the x, y axes.
     """
     
     # Check that the desired absolute joint positions are not out of limit.
@@ -58,7 +76,24 @@ def Inverse_Kinematics(p: tp.List[float], Robot_Parameters_Str: Parameters.Robot
                                                                                               tp.List[tp.List[float]]]:
     """
     Description:
-        ...
+        A function to compute the solution of the inverse kinematics (IK) of the RR robotic 
+        structure (called SCARA -> simplified version) using an analytical method.
+
+        Note:
+            R - Revolute
+
+    Args:
+        (1) p [Vector<float> 1x2]: The desired TCP (tool center point) in Cartesian coordinates (also called 
+                                   orthogonal coordinates) defined as a vector in the x, y axes.
+        (2) Robot_Parameters_Str [Robot_Parameters_Str(object)]: The structure of the main parameters of the robot.
+
+    Returns:
+        (1) parameter [Dictionary {'error': Vector<float> 1xk]: Information on the results found.
+                                                                    Note 1:
+                                                                         Where k is the number of solutions.
+                                                                    Note 2:
+                                                                        'error': Information about the absolute position error.
+        (2) parameter [Vector<float> 2x2]: Obtained solutions of the absolute positions of the joints in radians.
     """
         
     # Initialization of output solutions.

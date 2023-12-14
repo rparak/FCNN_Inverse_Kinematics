@@ -3,8 +3,7 @@ Desription:
     Hyperparameter structure for training an Inverse Kinematics (IK) task 
     using a Fully-Connected Neural Network (FCNN).
 """
-# Method 1: 
-#   With test (validation) partition.
+
 FCNN_HPS = {
     'use_bias': False,
     'layer_dropout': 0.10,

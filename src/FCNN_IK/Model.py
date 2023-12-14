@@ -73,8 +73,9 @@ class FCNN_Trainer_Cls(object):
             self.__train_data = None
 
             # Split the data from the dataset (x, y) into random train and validation subsets.
-            self.__x_train, self.__x_validation, self.__y_train, self.__y_validation = sklearn.model_selection.train_test_split(x, y, train_size=train_size, 
-                                                                                                                                test_size=test_size, random_state=0)
+            self.__x_train, self.__x_validation, self.__y_train, self.__y_validation = sklearn.model_selection.train_test_split(x, y, 
+                                                                                                                                train_size=train_size, test_size=test_size, 
+                                                                                                                                shuffle=1, random_state=0)
 
             # Find the scale parameter from the dataset and transform the data using this parameter.
             self.__scaler_x, self.__x_train_scaled = Utilities.Scale_Data([-1.0, 1.0], self.__x_train)
@@ -309,8 +310,9 @@ class FCNN_Optimizer_Cls(object):
             assert (train_size + test_size) == 1.0 and test_size > 0.0
 
             # Split the data from the dataset (x, y) into random train and validation subsets.
-            self.__x_train, self.__x_validation, self.__y_train, self.__y_validation = sklearn.model_selection.train_test_split(x, y, train_size=train_size, 
-                                                                                                                                test_size=test_size, random_state=0)
+            self.__x_train, self.__x_validation, self.__y_train, self.__y_validation = sklearn.model_selection.train_test_split(x, y, 
+                                                                                                                                train_size=train_size, test_size=test_size, 
+                                                                                                                                shuffle=1, random_state=0)
 
             # Find the scale parameter from the dataset and transform the data using this parameter.
             self.__scaler_x, self.__x_train_scaled = Utilities.Scale_Data([-1.0, 1.0], self.__x_train)

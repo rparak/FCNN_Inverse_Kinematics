@@ -15,10 +15,10 @@ import keras_tuner as kt
 # Shutil (High-level file operations)
 import shutil
 # Custom Lib.:
-#   ../Lib/FCNN_IK/Utilities
-import Lib.FCNN_IK.Utilities as Utilities
-#   ../Lib/Utilities/File_IO
-import Lib.Utilities.File_IO as File_IO
+#   ../FCNN_IK/Utilities
+import FCNN_IK.Utilities as Utilities
+#   ../Utilities/File_IO
+import Utilities.File_IO as File_IO
 
 """
 Description:
@@ -34,9 +34,9 @@ class FCNN_Trainer_Cls(object):
 
     Initialization of the Class:
         Args:
-            (1) x [Vector<float> nxm]: Input data.
-                                        Note:
-                                            Where n is the number of data and m is the number of input parameters.
+            (1) x [Vector<[float, int]> nxm]: Input data.
+                                                Note:
+                                                    Where n is the number of data and m is the number of input parameters.
             (2) y [Vector<float> nxk]: Output (target) data.
                                         Note:
                                             Where n is the number of data and k is the number of output parameters.
@@ -63,7 +63,7 @@ class FCNN_Trainer_Cls(object):
                 Cls.Save()
     """
         
-    def __init__(self, x: tp.List[float], y: tp.List[float], train_size: float, test_size: float,
+    def __init__(self, x: tp.List[tp.Union[float, int]], y: tp.List[float], train_size: float, test_size: float,
                  file_path: str) -> None:
 
         try:
@@ -142,7 +142,7 @@ class FCNN_Trainer_Cls(object):
         
         # Save the data from the training.
         if self.__train_data != None:
-            for _, data_i in enumerate(np.array(list(self.__train_data.history.values()), dtype=np.float64).T):
+            for _, data_i in enumerate(np.array(list(self.__train_data.history.values()), dtype=np.float32).T):
                 File_IO.Save(f'{self.__file_path}_History', data_i, 'txt', ',')
             print(f'[INFO] The training data history has been successfully saved.')
             print(f'[INFO] >> file_path = {self.__file_path}_History.txt')
@@ -219,7 +219,7 @@ class FCNN_Predictor_Cls(object):
 
             Features:
                 # Functions of the class.
-                Cls.Predict([p(x, y, z), q(w, x, y, z)])
+                Cls.Predict([p(x, y), cfg])
     """
         
     def __init__(self, scaler_x_file_path: str, scaler_y_file_path: str, model_file_path: str) -> None:
@@ -230,31 +230,29 @@ class FCNN_Predictor_Cls(object):
         # Load the trained model from the folder.
         self.__model = tf.keras.models.load_model(model_file_path)
 
-    def Predict(self, x: tp.List[float]) -> tp.List[float]:
+    def Predict(self, x: tp.List[tp.Union[float, int]]) -> tp.List[float]:
         """
         Description:
             A function to predict the absolute joint position of the robotic arm from the input 
-            position and orientation of the end-effector.
+            position of the end-effector and configuration of the solution.
 
         Args:
-            (1) x [Vector<float> 1x7]: Input data as TCP (Tool Center Point) of the robotic arm.
-                                        Note:
-                                            Defined as position (x, y, z) and orientation 
-                                            in quaternions (w, x, y, z).
+            (1) x [Vector<[float, int]> 1x7]: Input data defined as coordinates of the x-axis, y-axis (in meters) 
+                                              and the configuration of the solution.
 
         Returns:
-            (1) parameter [Vector<float> 1xm]: Output (target) data as absolute joint position of the robotic arm.
+            (1) parameter [Vector<float> 1xm]: Output data defined as absolute joint position of the robotic arm.
                                                 Note:
                                                     Where m is the number of joints.
         """
 
         # Transform of data using the scale parameter.
-        x_transfored = Utilities.Transform_Data_With_Scaler(self.__scaler_x, x.astype('float32').reshape(1, x.shape[0]))
+        x_transfored = Utilities.Transform_Data_With_Scaler(self.__scaler_x, x.reshape(1, x.shape[0]))
 
         # Generates output predictions from input transformed data.
         y = self.__model.predict(x_transfored)
 
-        return Utilities.Inverse_Data_With_Scaler(self.__scaler_y, y.astype('float32').reshape(1, y.shape[1]))
+        return Utilities.Inverse_Data_With_Scaler(self.__scaler_y, y.reshape(1, y.shape[1]))
 
 class FCNN_Optimizer_Cls(object):
     """
@@ -278,9 +276,9 @@ class FCNN_Optimizer_Cls(object):
 
     Initialization of the Class:
         Args:
-            (1) x [Vector<float> nxm]: Input data.
-                                        Note:
-                                            Where n is the number of data and m is the number of input parameters.
+            (1) x [Vector<[float, int[]> nxm]: Input data.
+                                                Note:
+                                                    Where n is the number of data and m is the number of input parameters.
             (2) y [Vector<float> nxk]: Output (target) data.
                                         Note:
                                             Where n is the number of data and k is the number of output parameters.
@@ -304,7 +302,7 @@ class FCNN_Optimizer_Cls(object):
                              save_results=True)
     """
         
-    def __init__(self, x: tp.List[float], y: tp.List[float], train_size: float, test_size: float,
+    def __init__(self, x: tp.List[tp.Union[float, int]], y: tp.List[float], train_size: float, test_size: float,
                  file_path: str) -> None:
         try:
             assert (train_size + test_size) == 1.0 and test_size > 0.0

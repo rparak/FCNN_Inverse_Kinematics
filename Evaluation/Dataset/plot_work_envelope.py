@@ -1,8 +1,8 @@
 # System (Default)
 import sys
 #   Add access if it is not in the system path.
-if '../' + 'src' not in sys.path:
-    sys.path.append('../..')
+if '../../' + 'src' not in sys.path:
+    sys.path.append('../../' + 'src')
 # Numpy (Array computing) [pip3 install numpy]
 import numpy as np
 # OS (Operating system interfaces)
@@ -61,14 +61,14 @@ def main():
 
     # Create a figure.
     figure = plt.figure()
+    figure.tight_layout()
     ax = figure.add_subplot()
 
     # Plot the robot's dataset dependent on the input data from the file.
-    ax.plot(x, y, 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0],
-            label=f'2D Coordinates (x, y): N = {CONST_NUM_OF_DATA}')
+    ax.plot(x, y, 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0], label=f'2D Coordinates (x, y): N = {CONST_NUM_OF_DATA}')
 
     # Set parameters of the graph (plot).
-    ax.set_title(f'The Dataset of a {Robot_Str.Theta.Zero.size}-axis robotic arm {Robot_Str.Name}', fontsize=25, pad=25.0)
+    ax.set_title(f'The Dataset of a {Robot_Str.Theta.Zero.size}-axis robotic arm {Robot_Str.Name}: Work Envelope', fontsize=25, pad=25.0)
     # Set parameters of the graph (plot).
     #   Set the x ticks.
     ax.set_xticks(np.arange(np.min(x) - 0.1, np.max(x) + 0.1, 0.1))

@@ -16,6 +16,12 @@ import FCNN_IK.Model
 import Hyperparameters.Utilities
 
 """
+Notes:
+    A command to kill all Python processes within the GPU.
+    $ ../>  sudo killall -9 python
+"""
+
+"""
 Description:
     Initialization of constants.
 """
@@ -66,7 +72,6 @@ def main():
     FCNN_IK_Trainer_Cls.Train(epochs=1000, batch_size=64)
     #   4\ Save.
     FCNN_IK_Trainer_Cls.Save()
-
 
 if __name__ == "__main__":
     sys.exit(main())

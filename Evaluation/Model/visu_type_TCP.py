@@ -12,22 +12,23 @@ import scienceplots
 # Matplotlib (Visualization) [pip3 install matplotlib]
 import matplotlib.pyplot as plt
 # Custom Lib.:
-#   ../Lib/Parameters/Robot
-import Lib.Parameters.Robot as Parameters
-#   ../Lib/Kinematics/Core
-import Lib.Kinematics.Core as Kinematics
-#   ../Lib/Trajectory/Utilities
-import Lib.Trajectory.Utilities
+#   ../Parameters/Robot
+import Parameters.Robot
+#   ../Kinematics/Core
+import Kinematics.Core as Kinematics
+#   ../Trajectory/Utilities
+import Trajectory.Utilities
 #   ../Configuration/Parameters
 import Configuration.Parameters
-
+#   ../FCNN_IK/Model
+import FCNN_IK.Model
 
 """
 Description:
     Initialization of constants.
 """
 # Set the structure of the main parameters of the robot.
-CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
+CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
 CONST_NUM_OF_DATA = 1000
@@ -35,7 +36,10 @@ CONST_NUM_OF_DATA = 1000
 def main():
     """
     Description:
-        ...
+        The program to visualize both the desired and predicted Tool Center Point (TCP) coordinates in meters.
+
+        The observation is tested on trajectories of the absolute positions of the robot's joints, generated 
+        using a multi-axis polynomial profile.
     """
 
     # Locate the path to the project folder.
@@ -44,17 +48,18 @@ def main():
     # Initialization of the structure of the main parameters of the robot.
     Robot_Str = CONST_ROBOT_TYPE
 
-    # Initialization of the class to generate trajectory.
-    Polynomial_Cls = Lib.Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=0.01)
+    # Prediction of the absolute joint position of the robotic arm.
+    #   1\ Initialization.
+    FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True_Scaler_x.pkl', 
+                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True_Scaler_y.pkl', 
+                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True.h5')
     
-    # Set the parameters for the scientific style.
-    plt.style.use(['science'])
 
+    # Initialization of the class to generate trajectory.
+    Polynomial_Cls = Trajectory.Utilities.Polynomial_Profile_Cls(delta_time=0.01)
+    
     # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
     (abs_j_pos_0, abs_j_pos_1) = Configuration.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
-
-    # The tolerance of the data.
-    tolerance = 4
 
     # Generation of multi-axis position trajectories from input parameters.
     theta_arr = []
@@ -63,30 +68,36 @@ def main():
                                                       Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
         theta_arr.append(theta_arr_i)
 
-    # Obtain the homogeneous transformation matrix using forward kinematics from 
-    # the generated multi-axis position trajectories.
-    x = []; y = []; z = []; q_w = []; q_x = []; q_y = []; q_z = []
-    for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float64).T):
-        T = Kinematics.Forward_Kinematics(theta_arr_i, 'Fast', Robot_Str)[1]
-        # Store the acquired data.
-        #   Position (x, y, z).
-        x.append(np.round(T.p.x, tolerance)); y.append(np.round(T.p.y, tolerance))
-        z.append(np.round(T.p.z, tolerance))
-        #   Quaternion (w, x, y, z)
-        q = T.Get_Rotation('QUATERNION')
-        q_w.append(np.round(q.w, tolerance)); q_x.append(np.round(q.x, tolerance))
-        q_y.append(np.round(q.y, tolerance)); q_z.append(np.round(q.z, tolerance))
+    # The tolerance of the data.
+    tolerance = 4
 
+    # Obtain the x, y coordinates (TCP: Tool Center Point) using forward kinematics from the generated 
+    # multi-axis position trajectories.
+    x = []; y = []; x_1 = []; y_1 = []; 
+    for _, theta_arr_i in enumerate(np.array(theta_arr, dtype=np.float64).T):
+        # Obtain the x, y coordinates of the desired absolute positions of the joints using forward kinematics.
+        p = np.round(Kinematics.Forward_Kinematics(theta_arr_i, Robot_Str)[1], tolerance).astype('float32')
+        x.append(p[0]); y.append(p[1])
+
+        # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
+        # and configuration of the solution.
+        theta_predicted = FCNN_IK_Predictor_Cls.Predict([0.0, 0.0, 1.0])[0]
+
+        # Obtain the x, y coordinates of the predicted absolute positions of the joints using forward kinematics.
+        p_1 = np.round(Kinematics.Forward_Kinematics(theta_predicted, Robot_Str)[1], tolerance).astype('float32')
+        x_1.append(p_1[0]); y_1.append(p_1[1])
+        
     # Display TCP(Tool Center Point) parameters.
-    y_label = [r'x(t) in meters', r'y(t) in meters', r'z(t) in meters', r'$q_{w}(t)$ in [-]', 
-               r'$q_{x}(t)$ in [-]', r'$q_{y}(t)$ in [-]', r'$q_{z}(t)$ in [-]']
-    for i, TPC_i in enumerate([x, y, z, q_w, q_x, q_y, q_z]):
+    y_label = [r'x(t) in meters', r'y(t) in meters']
+    for i, (TPC_i, TCP_1_i) in enumerate(zip([x, y], [x_1, y_1])):
         # Create a figure.
         _, ax = plt.subplots()
 
         # Visualization of relevant structures.
         ax.plot(Polynomial_Cls.t, TPC_i, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
                 markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
+        ax.plot(Polynomial_Cls.t, TCP_1_i, '.-', color='#ffbf80', linewidth=1.0, markersize = 3.0, 
+                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Predicted Data')
 
         # Set parameters of the graph (plot).
         #   Set the x ticks.

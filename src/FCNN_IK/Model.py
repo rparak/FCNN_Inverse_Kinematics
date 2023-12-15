@@ -392,12 +392,12 @@ class FCNN_Optimizer_Cls(object):
         #   Note:
         #       Other parameters are defined within each layer.
         use_bias = Hyperparameters.Choice('use_bias', values=[False, True]); hidden_layer_activation = Hyperparameters.Choice('hidden_layer_activation', 
-                                                                                                                              values=['linear', 'relu', 'tanh'])
+                                                                                                                              values=['relu', 'tanh'])
         layer_dropout = Hyperparameters.Float('layer_dropout', min_value=0.05, max_value=0.20, step=0.05)
 
         # Set the input layer of the FCNN model architecture.
         model.add(tf.keras.layers.Dense(self.__x_train.shape[1], input_shape=(self.__x_train.shape[1],), 
-                                        activation=Hyperparameters.Choice('in_layer_activation', values=['linear', 'relu', 'tanh']), use_bias=use_bias))
+                                        activation=Hyperparameters.Choice('in_layer_activation', values=['relu', 'tanh']), use_bias=use_bias))
         model.add(tf.keras.layers.Dropout(layer_dropout))
 
         # Set the hidden layers of the FCNN model architecture.
@@ -408,7 +408,7 @@ class FCNN_Optimizer_Cls(object):
             model.add(tf.keras.layers.Dropout(layer_dropout))
         
         # Set the output layer of the FCNN model architecture.
-        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters.Choice('out_layer_activation', values=['linear', 'relu', 'tanh']), 
+        model.add(tf.keras.layers.Dense(self.__y_train.shape[1], activation=Hyperparameters.Choice('out_layer_activation', values=['relu', 'tanh']), 
                                         use_bias=use_bias))
 
         # Finally, compile the model.

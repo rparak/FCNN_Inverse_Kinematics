@@ -12,22 +12,22 @@ import numpy as np
 # Matplotlib (Visualization) [pip3 install matplotlib]
 import matplotlib.pyplot as plt
 # Custom Lib.:
-#   ../Lib/Parameters/Robot
-import Lib.Parameters.Robot as Parameters
-#   ../Lib/Utilities/File_IO
-import Lib.Utilities.File_IO as File_IO
-#   ../Lib/Transformation/Utilities/Mathematics
-import Lib.Transformation.Utilities.Mathematics as Mathematics
+#   ../Utilities/File_IO
+import Utilities.File_IO as File_IO
+#   ../Transformation/Utilities/Mathematics
+import Transformation.Utilities.Mathematics as Mathematics
 
 """
 Description:
     Initialization of constants.
 """
-# Set the structure of the main parameters of the robot.
-CONST_ROBOT_TYPE = Parameters.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
-CONST_NUM_OF_DATA = 10000
+CONST_NUM_OF_DATA = 1000
+# Matrices such as mean squared error (MSE), mean absolute 
+# error (MAE) and accuracy to be plotted.
+#   CONST_METRIC = 'Accuracy', 'MSE' or 'MAE'
+CONST_METRIC = 'Accuracy'
 
 def main():
     """
@@ -39,12 +39,8 @@ def main():
     # Locate the path to the project folder.
     project_folder = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
 
-    # Initialization of the structure of the main parameters of the robot.
-    Robot_Str = CONST_ROBOT_TYPE
-
-    # Create a file path to read/write the data.
-    file_path_r = f'{project_folder}/src/Data/Model/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}'
-    file_path_w = f'{project_folder}/src/Data/Dataset/{Robot_Str.Name}/Config_N_{CONST_NUM_OF_DATA}'
+    # Create a file path to read the data.
+    file_path_r = f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}'
 
     # Read data from the file {*.txt}.
     data = File_IO.Load(f'{file_path_r}_use_val_True_History', 'txt', ',')
@@ -53,7 +49,7 @@ def main():
 
     # Display the results as the values shown in the console.
     print('[INFO] Evaluation Criteria: Fully-Connected Neural Network (FCNN)')
-    print(f'[INFO] The name of the dataset: {file_path_w}')
+    print(f'[INFO] The name of the dataset: Config_N_{CONST_NUM_OF_DATA}')
     print(f'[INFO] The best results were found in the {id} iteration.')
     print('[INFO]  Accuracy:')
     print(f'[INFO]  [train = {data[id, 1]:.08f}, valid = {data[id, 5]:.08f}]')
@@ -69,14 +65,27 @@ def main():
     _, ax = plt.subplots()
 
     # Visualization of relevant structures.
-    ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-    ax.plot(np.arange(0,len(data[:, 3])), data[:, 6], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+    if CONST_METRIC == 'Accuracy':
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 1], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 5], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+        y_label = r'Accuracy'
+    elif CONST_METRIC == 'MSE':
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 6], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+        y_label = r'Mean Squared Error (MSE)'
+    elif CONST_METRIC == 'MAE':
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 3], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+        ax.plot(np.arange(0,len(data[:, 0])), data[:, 7], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+        y_label = r'Mean Absolute Error (MAE)'
+
+    # Best result.
+    ax.scatter(data[id, 3], data[id, 6], '.', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label='best result')
 
     # Set parameters of the graph (plot).
     ax.set_title(f'The name of the Dataset: Config_N_{CONST_NUM_OF_DATA}', fontsize=25, pad=25.0)
     #   Label.
     ax.set_xlabel(r'Epoch', fontsize=15, labelpad=10)
-    ax.set_ylabel(r'Mean Squared Error (MSE)', fontsize=15, labelpad=10) 
+    ax.set_ylabel(y_label, fontsize=15, labelpad=10) 
     #   Set parameters of the visualization.
     ax.grid(which='major', linewidth = 0.15, linestyle = '--')
     # Get handles and labels for the legend.

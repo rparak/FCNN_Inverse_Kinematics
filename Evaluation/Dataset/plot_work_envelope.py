@@ -56,7 +56,7 @@ def main():
     # The tolerance of the data.
     tolerance = 4
 
-    # Express the data as x, y.
+    # Express the data as x, y coordinates in meters.
     x = np.round(data[:, 0], tolerance); y = np.round(data[:, 1], tolerance)
 
     # Create a figure.

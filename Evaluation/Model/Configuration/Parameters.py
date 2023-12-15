@@ -3,8 +3,8 @@ import numpy as np
 # Typing (Support for type hints)
 import typing as tp
 # Custom Lib.:
-#   ../Lib/Transformation/Utilities/Mathematics
-import Lib.Transformation.Utilities.Mathematics as Mathematics
+#   ../Transformation/Utilities/Mathematics
+import Transformation.Utilities.Mathematics as Mathematics
 
 """
 Description:
@@ -25,14 +25,14 @@ def Get_Absolute_Joint_Positions(name: str) -> tp.Tuple[tp.List[float],
         (1) name [string]: Name of the robotic structure.
 
     Returns:
-        (1) parameter [Vector<float> 2xn]: Obtained absolute joint positions (initial, final) in radians / meters.
+        (1) parameter [Vector<float> 2xn]: Obtained absolute joint positions (initial, final) in radians.
                                             Note:
                                                 Where n is the number of joints.
     """
 
     return {
-        'EPSON_LS3_B401S': (np.array([Mathematics.Degree_To_Radian(20.0), Mathematics.Degree_To_Radian(0.0), 0.05, Mathematics.Degree_To_Radian(-30.0)], 
-                                     dtype = np.float64), 
-                            np.array([Mathematics.Degree_To_Radian(80.0), Mathematics.Degree_To_Radian(-20.0), 0.10, Mathematics.Degree_To_Radian(15.0)],
-                                     dtype = np.float64))
+        'EPSON_LS3_B401S': (np.array([Mathematics.Degree_To_Radian(-40.0), Mathematics.Degree_To_Radian(50.0)], 
+                                     dtype = np.float32), 
+                            np.array([Mathematics.Degree_To_Radian(115.0), Mathematics.Degree_To_Radian(-20.0)],
+                                     dtype = np.float32))
     }[name]

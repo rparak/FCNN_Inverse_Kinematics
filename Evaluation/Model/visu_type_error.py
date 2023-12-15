@@ -1,8 +1,8 @@
 # System (Default)
 import sys
 #   Add access if it is not in the system path.
-if '../../' not in sys.path:
-    sys.path.append('../../')
+if '../../' + 'src' not in sys.path:
+    sys.path.append('../../' + 'src')
 # Numpy (Array computing) [pip3 install numpy]
 import numpy as np
 # OS (Operating system interfaces)
@@ -54,9 +54,9 @@ def main():
 
     # Prediction of the absolute joint position of the robotic arm.
     #   1\ Initialization.
-    FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True_Scaler_x.pkl', 
-                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True_Scaler_y.pkl', 
-                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_use_val_True.h5')
+    FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_Scaler_x.pkl', 
+                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_Scaler_y.pkl', 
+                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}.h5')
     
 
     # Initialization of the class to generate trajectory.
@@ -84,7 +84,7 @@ def main():
 
         # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
         # and configuration of the solution.
-        theta_predicted = FCNN_IK_Predictor_Cls.Predict([0.0, 0.0, 1.0])[0]
+        theta_predicted = FCNN_IK_Predictor_Cls.Predict(np.array([p[0], p[1], 0]))[0]
 
         # Obtain the x, y coordinates of the predicted absolute positions of the joints using forward kinematics.
         p_1 = np.round(Kinematics.Forward_Kinematics(theta_predicted, Robot_Str)[1], tolerance).astype('float32')
@@ -101,7 +101,7 @@ def main():
     _, ax = plt.subplots()
 
     # Visualization of relevant structures.
-    ax.plot(Polynomial_Cls.t, e_p, 'x', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label=label[i])
+    ax.plot(Polynomial_Cls.t, e_p, 'x', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label=label[0])
     ax.plot(Polynomial_Cls.t, [np.mean(e_p)] * Polynomial_Cls.t.size, '--', color='#8d8d8d', linewidth=1.5, label=f'Mean Absolute Error (MAE)')
 
     # Set parameters of the graph (plot).
@@ -126,8 +126,8 @@ def main():
 
     # Display the results as the values shown in the console.
     print(f'[INFO] Iteration: {0}')
-    print(f'[INFO] max(label{0}) = {np.max(e_p)} in mm')
-    print(f'[INFO] min(label{0}) = {np.min(e_p)} in mm')
+    print(f'[INFO] max({label[0]}) = {np.max(e_p)} in mm')
+    print(f'[INFO] min({label[0]}) = {np.min(e_p)} in mm')
     print(f'[INFO] MAE = {np.mean(e_p)} in mm')
 
     # Show the result.

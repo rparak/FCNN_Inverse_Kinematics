@@ -29,7 +29,7 @@ Description:
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 10000
 
 def main():
     """
@@ -67,7 +67,7 @@ def main():
     #   1-2\ Initialization and Compilation.
     FCNN_IK_Trainer_Cls = FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
                                                          file_path=file_path_w)
-    FCNN_IK_Trainer_Cls.Compile(Hyperparameters.Utilities.FCNN_HPS)
+    FCNN_IK_Trainer_Cls.Compile(Hyperparameters.Utilities.Get_Hyperparameter_Structure(CONST_NUM_OF_DATA))
     #   3\ Train.
     FCNN_IK_Trainer_Cls.Train(epochs=1000, batch_size=64)
     #   4\ Save.

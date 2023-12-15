@@ -14,8 +14,6 @@ import matplotlib.pyplot as plt
 # Custom Lib.:
 #   ../Parameters/Robot
 import Parameters.Robot
-#   ../Transformation/Utilities/Mathematics
-import Transformation.Utilities.Mathematics as Mathematics
 #   ../Kinematics/Core
 import Kinematics.Core as Kinematics
 #   ../Trajectory/Utilities
@@ -32,7 +30,7 @@ Description:
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
-CONST_IK_CONFIGURATION = 0
+CONST_IK_CONFIGURATION = 1
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
 CONST_NUM_OF_DATA = 10000
@@ -40,10 +38,8 @@ CONST_NUM_OF_DATA = 10000
 def main():
     """
     Description:
-        A program to observe the absolute orientation error in inverse kinematics calculation using the Fully-Connected Neural 
-        Network (FCNN) method. 
+        The program to visualize both the desired and predicted absolute positions of the robot's joints in radians.
 
-        
         The observation is tested on trajectories of both the x and y coordinates, generated 
         using a multi-axis trapezoidal profile.
     """
@@ -83,62 +79,56 @@ def main():
     # The tolerance of the data.
     tolerance = 4
 
-    # Obtain the Absolute Orientation Error (AOE) using inverse kinematics from the generated 
+    # Obtain the absolute positions of the joints using inverse kinematics from the generated 
     # multi-axis position trajectories.
-    e_o = []
+    theta_0_0 = []; theta_0_1 = []; theta_1_0 = []; theta_1_1 = []; 
     for _, p_arr_i in enumerate(np.array(p_arr, dtype=np.float32).T):
         p_tmp = np.round(p_arr_i.astype('float32'), tolerance)
 
         # Compute the solution of the inverse kinematics (IK) using an analytical method.
         (_, theta) = Kinematics.Inverse_Kinematics(p_tmp, Robot_Str)
+        theta_0_0.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 0])
+        theta_0_1.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 1])
 
         # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
         # and configuration of the solution.
         theta_predicted = FCNN_IK_Predictor_Cls.Predict(np.array([p_tmp[0], p_tmp[1], CONST_IK_CONFIGURATION], dtype=np.float32))[0]
-
-        # Obtain he absolute orientation error.
-        e_o.append(Mathematics.Euclidean_Norm(theta_predicted - theta[CONST_IK_CONFIGURATION, :]))
+        theta_1_0.append(theta_predicted.astype('float32')[0])
+        theta_1_1.append(theta_predicted.astype('float32')[1])
 
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
-    label = [r'$e_{o}(\hat{t})$']; title = ['Absolute Orientation Error (AOE)']
+    # Display absolute positions of the robot's joints.
+    for i, (th_0_i, th_1_i) in enumerate(zip([theta_0_0, theta_0_1], [theta_1_0, theta_1_1])):
+        # Create a figure.
+        _, ax = plt.subplots()
 
-    # Create a figure.
-    _, ax = plt.subplots()
+        # Visualization of relevant structures.
+        ax.plot(Trapezoidal_Cls.t, th_0_i, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
+                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
+        ax.plot(Trapezoidal_Cls.t, th_1_i, '.-', color='#ffbf80', linewidth=1.0, markersize = 3.0, 
+                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Predicted Data')
 
-    # Visualization of relevant structures.
-    ax.plot(Trapezoidal_Cls.t, e_o, 'x', color='#8d8d8d', linewidth=3.0, markersize=8.0, markeredgewidth=3.0, markerfacecolor='#8d8d8d', label=label[0])
-    ax.plot(Trapezoidal_Cls.t, [np.mean(e_o)] * Trapezoidal_Cls.t.size, '--', color='#8d8d8d', linewidth=1.5, label=f'Mean Absolute Error (MAE)')
+        # Set parameters of the graph (plot).
+        #   Set the x ticks.
+        ax.set_xticks(np.arange(np.min(Trapezoidal_Cls.t) - 0.1, np.max(Trapezoidal_Cls.t) + 0.1, 0.1))
+        #   Set the y ticks.
+        ax.set_yticks(np.arange(np.min(th_0_i) - 0.1, np.max(th_0_i) + 0.1, 0.1))
+        #   Label.
+        ax.set_xlabel(r'Normalized time $\hat{t}$ in the range of [0.0, 1.0]', fontsize=15, labelpad=10)
+        ax.set_ylabel(r'$\theta_{%d}(\hat{t})$ in radians' % (i + 1), fontsize=15, labelpad=10) 
+        #   Set parameters of the visualization.
+        ax.grid(which='major', linewidth = 0.15, linestyle = '--')
+        # Get handles and labels for the legend.
+        handles, labels = plt.gca().get_legend_handles_labels()
+        # Remove duplicate labels.
+        legend = dict(zip(labels, handles))
+        # Show the labels (legends) of the graph.
+        ax.legend(legend.values(), legend.keys(), fontsize=10.0)
 
-    # Set parameters of the graph (plot).
-    ax.set_title(f'{title[0]}', fontsize=25, pad=25.0)
-    #   Set the x ticks.
-    ax.set_xticks(np.arange(np.min(Trapezoidal_Cls.t) - 0.1, np.max(Trapezoidal_Cls.t) + 0.1, 0.1))
-    #   Set the y ticks.
-    tick_y_tmp = (np.max(e_o) - np.min(e_o))/10.0
-    tick_y = tick_y_tmp if tick_y_tmp != 0.0 else 0.1
-    ax.set_yticks(np.arange(np.min(e_o) - tick_y, np.max(e_o) + tick_y, tick_y))
-    #   Label
-    ax.set_xlabel(r'Normalized time $\hat{t}$ in the range of [0.0, 1.0]', fontsize=15, labelpad=10)
-    ax.set_ylabel(f'Error {label[0]} in radians', fontsize=15, labelpad=10) 
-    #   Set parameters of the visualization.
-    ax.grid(which='major', linewidth = 0.15, linestyle = '--')
-    # Get handles and labels for the legend.
-    handles, labels = plt.gca().get_legend_handles_labels()
-    # Remove duplicate labels.
-    legend = dict(zip(labels, handles))
-    # Show the labels (legends) of the graph.
-    ax.legend(legend.values(), legend.keys(), fontsize=10.0)
-
-    # Display the results as the values shown in the console.
-    print(f'[INFO] Iteration: {0}')
-    print(f'[INFO] max({label[0]}) = {np.max(e_p)} in radians')
-    print(f'[INFO] min({label[0]}) = {np.min(e_p)} in radians')
-    print(f'[INFO] MAE = {np.mean(e_p)} in radians')
-
-    # Show the result.
-    plt.show()
+        # Show the result.
+        plt.show()
 
 if __name__ == "__main__":
     sys.exit(main())

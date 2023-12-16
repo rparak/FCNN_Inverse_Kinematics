@@ -402,7 +402,7 @@ class FCNN_Optimizer_Cls(object):
         # Set the hidden layers of the FCNN model architecture.
         for i in range(0, Hyperparameters.Int('num_of_hidden_layers', min_value=1, max_value=int(((self.__x_train.shape[1] * self.__y_train.shape[1]) ** 0.5)) + 1, 
                                               step=1)):
-            model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=128, step=32), 
+            model.add(tf.keras.layers.Dense(Hyperparameters.Int(f'hidden_layer_{i + 1}_units', min_value=32, max_value=256, step=32), 
                                             activation='tanh', use_bias=use_bias))
             model.add(tf.keras.layers.Dropout(layer_dropout))
         

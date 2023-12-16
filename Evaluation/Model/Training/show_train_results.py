@@ -23,7 +23,7 @@ Description:
 """
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
-CONST_NUM_OF_DATA = 10000
+CONST_NUM_OF_DATA = 1000
 # Matrices such as mean squared error (MSE), mean absolute 
 # error (MAE) and accuracy to be plotted.
 #   CONST_METRIC = 'Accuracy', 'MSE' or 'MAE'

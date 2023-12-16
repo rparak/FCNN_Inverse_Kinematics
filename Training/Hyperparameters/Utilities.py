@@ -30,9 +30,9 @@ def Get_Hyperparameter_Structure(N: int) -> tp.Dict:
         1000: {'use_bias': True,
                'layer_dropout': 0.05,
                'num_of_hidden_layers': 3,
-               'hidden_layer_1_units': 64,
-               'hidden_layer_2_units': 128,
-               'hidden_layer_3_units': 64,
+               'hidden_layer_1_units': 32,
+               'hidden_layer_2_units': 64,
+               'hidden_layer_3_units': 32,
                'learning_rate': 0.001
             },
         10000: {'use_bias': True,
@@ -46,9 +46,9 @@ def Get_Hyperparameter_Structure(N: int) -> tp.Dict:
         100000: {'use_bias': True,
                  'layer_dropout': 0.05,
                  'num_of_hidden_layers': 3,
-                 'hidden_layer_1_units': 64,
-                 'hidden_layer_2_units': 128,
-                 'hidden_layer_3_units': 64,
+                 'hidden_layer_1_units': 128,
+                 'hidden_layer_2_units': 256,
+                 'hidden_layer_3_units': 128,
                  'learning_rate': 0.001
             }
     }[N]

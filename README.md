@@ -1,3 +1,3 @@
 # DNN_Inverse_Kinematics
 
-next week ...
+tomorrow -> graphs, and final evaluation.

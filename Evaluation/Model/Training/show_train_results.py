@@ -9,6 +9,8 @@ import os
 import scienceplots
 # Numpy (Array computing) [pip3 install numpy]
 import numpy as np
+# Integrate a system of ordinary differential equations (ODE) [pip3 install scipy]
+import scipy 
 # Matplotlib (Visualization) [pip3 install matplotlib]
 import matplotlib.pyplot as plt
 # Custom Lib.:
@@ -26,8 +28,8 @@ Description:
 CONST_NUM_OF_DATA = 1000
 # Matrices such as mean squared error (MSE), mean absolute 
 # error (MAE) and accuracy to be plotted.
-#   CONST_METRIC = 'Accuracy', 'MSE' or 'MAE'
-CONST_METRIC = 'MSE'
+CONST_METRICES = [r'Accuracy', r'Mean Squared Error (MSE)', 
+                  r'Mean Absolute Error (MAE)']
 
 def main():
     """
@@ -61,42 +63,32 @@ def main():
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
-    # Create a figure.
-    _, ax = plt.subplots()
+    # Create a figure with 3 subplots.
+    fig, ax = plt.subplots(1, 3)
+    fig.suptitle(f'Training Results for the Dataset Containing {CONST_NUM_OF_DATA} Data Points', fontsize=25)
 
-    # Visualization of relevant structures.
-    if CONST_METRIC == 'Accuracy':
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 1], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 5], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
-        # Best result.
-        ax.scatter(id, data[id, 5],  marker='x', color='#8d8d8d', linewidth=3.0, label=f'best')
-        y_label = r'Accuracy'
-    elif CONST_METRIC == 'MSE':
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 2], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 6], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
-        # Best result.
-        ax.scatter(id, data[id, 6],  marker='x', color='#8d8d8d', linewidth=3.0, label=f'best')
-        y_label = r'Mean Squared Error (MSE)'
-    elif CONST_METRIC == 'MAE':
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 3], '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-        ax.plot(np.arange(0,len(data[:, 0])), data[:, 7], '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
-        # Best result.
-        ax.scatter(id, data[id, 7],  marker='x', color='#8d8d8d', linewidth=3.0, label=f'best')
-        y_label = r'Mean Absolute Error (MAE)'
+    t = np.arange(0, len(data[:, 0]), 100)
+    for i, mectric_i in enumerate(CONST_METRICES):
+        # Interpolate a 1-D function.
+        f_1 = scipy.interpolate.interp1d(np.arange(0,len(data[:, 0])), data[:, i + 1])
+        f_2 = scipy.interpolate.interp1d(np.arange(0,len(data[:, 0])), data[:, i + 5])
 
-    # Set parameters of the graph (plot).
-    ax.set_title(f'The name of the Dataset: Config_N_{CONST_NUM_OF_DATA}', fontsize=25, pad=25.0)
-    #   Label.
-    ax.set_xlabel(r'Epoch', fontsize=15, labelpad=10)
-    ax.set_ylabel(y_label, fontsize=15, labelpad=10) 
-    #   Set parameters of the visualization.
-    ax.grid(which='major', linewidth = 0.15, linestyle = '--')
-    # Get handles and labels for the legend.
-    handles, labels = plt.gca().get_legend_handles_labels()
-    # Remove duplicate labels.
-    legend = dict(zip(labels, handles))
-    # Show the labels (legends) of the graph.
-    ax.legend(legend.values(), legend.keys(), fontsize=10.0)
+        # Approximation of the function: y = f(x).
+        y_1 = f_1(t)
+        y_2 = f_2(t)
+
+        # Visualization of relevant structures.
+        ax[i].plot(t, y_1, '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
+        ax[i].plot(t, y_2, '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+
+        # Set parameters of the graph (plot).
+        #   Label.
+        ax[i].set_xlabel(r'Epoch', fontsize=15, labelpad=10)
+        ax[i].set_ylabel(mectric_i, fontsize=15, labelpad=10) 
+        #   Set parameters of the visualization.
+        ax[i].grid(which='major', linewidth = 0.15, linestyle = '--')
+        # Show the labels (legends) of the graph.
+        ax[i].legend(fontsize=10.0)
 
     # Show the result.
     plt.show()

@@ -31,9 +31,6 @@ Description:
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
 CONST_IK_CONFIGURATION = 1
-# A dataset configuration that specifies the amount of data 
-# generated to train the model.
-CONST_NUM_OF_DATA = 10000
 
 def main():
     """
@@ -50,12 +47,8 @@ def main():
     # Initialization of the structure of the main parameters of the robot.
     Robot_Str = CONST_ROBOT_TYPE
 
-    # Prediction of the absolute joint position of the robotic arm.
-    #   1\ Initialization.
-    FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_Scaler_x.pkl', 
-                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}_Scaler_y.pkl', 
-                                                             f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}.h5')
-    
+    # The tolerance of the data.
+    tolerance = 4
 
     # Obtain the constraints for absolute joint positions in order to generate multi-axis position trajectories.
     (abs_j_pos_0, abs_j_pos_1) = Configuration.Parameters.Get_Absolute_Joint_Positions(Robot_Str.Name)
@@ -73,28 +66,39 @@ def main():
     p_arr = []
     for _, (p_0_i, p_1_i) in enumerate(zip(p_0, p_1)):
         (p_arr_i, _, _) = Trapezoidal_Cls.Generate(p_0_i, p_1_i, 0.0, 0.0,
-                                                   Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
+                                                Configuration.Parameters.CONST_T_0, Configuration.Parameters.CONST_T_1)
         p_arr.append(p_arr_i)
 
-    # The tolerance of the data.
-    tolerance = 4
+    theta_0_0 = []; theta_0_1 = []; theta_1_0 = []; theta_1_1 = [];
+    for _, N_i in enumerate([1000, 10000, 100000]):
+        # Prediction of the absolute joint position of the robotic arm.
+        #   1\ Initialization.
+        FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{N_i}_Scaler_x.pkl', 
+                                                                 f'{project_folder}/Data/Model/Config_N_{N_i}_Scaler_y.pkl', 
+                                                                 f'{project_folder}/Data/Model/Config_N_{N_i}.h5')
+        
 
-    # Obtain the absolute positions of the joints using inverse kinematics from the generated 
-    # multi-axis position trajectories.
-    theta_0_0 = []; theta_0_1 = []; theta_1_0 = []; theta_1_1 = []; 
-    for _, p_arr_i in enumerate(np.array(p_arr, dtype=np.float32).T):
-        p_tmp = np.round(p_arr_i.astype('float32'), tolerance)
+        # Obtain the absolute positions of the joints using inverse kinematics from the generated 
+        # multi-axis position trajectories.
+        theta_1_0_N_i = []; theta_1_1_N_i = []; 
+        for _, p_arr_i in enumerate(np.array(p_arr, dtype=np.float32).T):
+            p_tmp = np.round(p_arr_i.astype('float32'), tolerance)
 
-        # Compute the solution of the inverse kinematics (IK) using an analytical method.
-        (_, theta) = Kinematics.Inverse_Kinematics(p_tmp, Robot_Str)
-        theta_0_0.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 0])
-        theta_0_1.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 1])
+            if bool(theta_0_0) == False:
+                # Compute the solution of the inverse kinematics (IK) using an analytical method.
+                (_, theta) = Kinematics.Inverse_Kinematics(p_tmp, Robot_Str)
+                theta_0_0.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 0])
+                theta_0_1.append(theta.astype('float32')[CONST_IK_CONFIGURATION, 1])
 
-        # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
-        # and configuration of the solution.
-        theta_predicted = FCNN_IK_Predictor_Cls.Predict(np.array([p_tmp[0], p_tmp[1], CONST_IK_CONFIGURATION], dtype=np.float32))[0]
-        theta_1_0.append(theta_predicted.astype('float32')[0])
-        theta_1_1.append(theta_predicted.astype('float32')[1])
+            # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
+            # and configuration of the solution.
+            theta_predicted = FCNN_IK_Predictor_Cls.Predict(np.array([p_tmp[0], p_tmp[1], CONST_IK_CONFIGURATION], dtype=np.float32))[0]
+            theta_1_0_N_i.append(theta_predicted.astype('float32')[0])
+            theta_1_1_N_i.append(theta_predicted.astype('float32')[1])
+
+        # Store the data.
+        theta_1_0.append(theta_1_0_N_i)
+        theta_1_1.append(theta_1_1_N_i)
 
     # Set the parameters for the scientific style.
     plt.style.use('science')
@@ -107,8 +111,10 @@ def main():
         # Visualization of relevant structures.
         ax.plot(Trapezoidal_Cls.t, th_0_i, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
                 markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
-        ax.plot(Trapezoidal_Cls.t, th_1_i, '.-', color='#ffbf80', linewidth=1.0, markersize = 3.0, 
-                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Predicted Data')
+        for _, (c_i, n_i) in enumerate(zip('#bfdbd1' '#abcae4', '#a64d79', 
+                                           [1000, 10000, 100000])):
+            ax.plot(Trapezoidal_Cls.t, th_1_i, '.-', color=c_i, linewidth=1.0, markersize = 3.0, 
+                    markeredgewidth = 1.5, markerfacecolor='#ffffff', label=f'Predicted Data: N = {n_i}')
 
         # Set parameters of the graph (plot).
         #   Set the x ticks.

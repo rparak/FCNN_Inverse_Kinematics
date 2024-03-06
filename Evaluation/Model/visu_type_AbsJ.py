@@ -109,8 +109,7 @@ def main():
         _, ax = plt.subplots()
 
         # Visualization of relevant structures.
-        ax.plot(Trapezoidal_Cls.t, th_0_i, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, 
-                markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
+        ax.plot(Trapezoidal_Cls.t, th_0_i, '.-', color='#d0d0d0', linewidth=1.0, markersize = 3.0, markeredgewidth = 1.5, markerfacecolor = '#ffffff', label='Desired Data')
         for _, (c_i, n_i) in enumerate(zip('#bfdbd1' '#abcae4', '#a64d79', 
                                            [1000, 10000, 100000])):
             ax.plot(Trapezoidal_Cls.t, th_1_i, '.-', color=c_i, linewidth=1.0, markersize = 3.0, 

@@ -106,7 +106,7 @@ def main():
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
-    label = [r'$e_{o}(\hat{t})$']; title = ['Comparison of Absolute Orientation Error (AOE) in Individual Datasets']
+    label = [r'$e(\hat{t})$']; title = ['Comparison of Absolute Orientation Error (AOE) in Individual Datasets']
 
     # Create a figure.
     _, ax = plt.subplots()

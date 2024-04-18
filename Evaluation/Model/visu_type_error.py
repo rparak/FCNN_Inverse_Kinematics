@@ -29,14 +29,14 @@ Description:
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
-CONST_IK_CONFIGURATION = 0
+CONST_IK_CONFIGURATION = 1
 # Number of data (x, y coordinates) to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 500
 
 def main():
     """
     Description:
-        A program to compare the absolute position error for an individual dataset configuration. 
+        A program to visualize the absolute position error for an individual dataset configuration. 
         
         The comparison is tested on multiple randomly generated coordinates calculated from reachable 
         points using forward kinematics.
@@ -114,7 +114,7 @@ def main():
         e_p_min.append(np.min(e_p_i)); e_p_max.append(np.max(e_p_i))
 
     # Set parameters of the graph (plot).
-    ax.set_title(r'Comparison of Absolute Position Error (APE) in Individual Datasets on Multiple Randomly Generated Coordinates', fontsize=25, pad=25.0)
+    ax.set_title(r'Absolute Position Error (APE) in Individual Datasets on Multiple Randomly Generated Coordinates', fontsize=25, pad=25.0)
     #   Set the x ticks.
     ax.set_xticks(np.arange(0, CONST_NUM_OF_DATA + CONST_NUM_OF_DATA * 0.1, CONST_NUM_OF_DATA * 0.1))
     #   Set the y ticks.

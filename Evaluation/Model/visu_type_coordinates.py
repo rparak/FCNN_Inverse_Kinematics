@@ -31,7 +31,7 @@ CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
 CONST_IK_CONFIGURATION = 0
 # Number of data (x, y coordinates) to be generated.
-CONST_NUM_OF_DATA = 10
+CONST_NUM_OF_DATA = 1000
 
 def main():
     """
@@ -106,8 +106,8 @@ def main():
     plt.style.use('science')
 
     aux_label = r'$IK_{Cfg}$'; data = np.array(data, dtype=np.float32); 
-    for _, (predicted_i, e_p_i, color_i) in enumerate(zip(data_predicted, e_p,
-                                                                     ['#3d85c6', '#6aa84f', '#674ea7'])):
+    for i, (predicted_i, e_p_i, color_i) in enumerate(zip(data_predicted, e_p,
+                                                          ['#3d85c6', '#6aa84f', '#674ea7'])):
         # Create a figure.
         figure = plt.figure()
         figure.tight_layout()
@@ -115,13 +115,17 @@ def main():
 
         predicted_i = np.array(predicted_i, dtype=np.float32)
         # Visualization of relevant structures.
-        ax.plot(data[:, 0], data[:, 1], '.', color='#8d8d8d', alpha=1.0, markersize=8.0, markeredgewidth=2.0, markerfacecolor='#ffffff', 
+        ax.plot(data[:, 0], data[:, 1], '.', color='#8d8d8d', alpha=1.0, markersize=12.0, markeredgewidth=3.0, markerfacecolor='#ffffff', 
                 label=f'Desired Coordinates: N = {CONST_NUM_OF_DATA}')
-        ax.plot(predicted_i[:, 0], predicted_i[:, 1], '.', color=color_i, alpha=1.0, markersize=8.0, markeredgewidth=2.0, markerfacecolor='#ffffff', 
+        ax.plot(predicted_i[:, 0], predicted_i[:, 1], '.', color=color_i, alpha=1.0, markersize=12.0, markeredgewidth=3.0, markerfacecolor='#ffffff', 
                 label=f'Desired Predicted: {aux_label} = {CONST_IK_CONFIGURATION}, MAE = {np.round(np.mean(e_p_i), 3)}')
+        
+        # Visualization of the straight line between the desired and predicted coordinates of the robot's end effector.
+        for _, (d_i, p_i) in enumerate(zip(data, predicted_i)):
+            ax.plot([d_i[0], p_i[0]], [d_i[1], p_i[1]], '.--', color='#e06666', linewidth=1.0, label=f'$\Delta$e')
 
         # Set parameters of the graph (plot).
-        ax.set_title(f'Visualization of Robot End-Effector Coordinates using a Neural-Network Predictor for Inverse Kinematics Calculation\nNeural-Network Type {i}', fontsize=25, pad=25.0)
+        ax.set_title(f'Visualization of Predicted End-Effector Coordinates using a Neural-Network Method\nNeural-Network Type {i}', fontsize=25, pad=25.0)
         # Set parameters of the graph (plot).
         #   Set the x ticks.
         ax.set_xticks(np.arange(np.min(data[:, 0]) - 0.1, np.max(data[:, 0]) + 0.1, 0.1))

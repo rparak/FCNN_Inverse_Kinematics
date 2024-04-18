@@ -87,6 +87,7 @@ def main():
     ax.legend(legend.values(), legend.keys(), fontsize=10.0)
 
     # Show the result.
+    plt.axis('equal')
     plt.show()
 
 if __name__ == "__main__":

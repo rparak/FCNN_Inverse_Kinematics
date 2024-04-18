@@ -18,7 +18,7 @@ import Hyperparameters.Utilities
 """
 Notes:
     A command to kill all Python processes within the GPU.
-    $ ../>  sudo killall -9 python
+    $ ../> sudo killall -9 python
 """
 
 """

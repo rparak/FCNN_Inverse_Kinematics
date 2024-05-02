@@ -68,15 +68,15 @@ def main():
     ax.plot(x, y, 'o', linewidth=1, markersize=2.5, color = [0,0.9,0.3,1.0], label=f'2D Coordinates (x, y): N = {CONST_NUM_OF_DATA}')
 
     # Set parameters of the graph (plot).
-    ax.set_title(f'The Dataset of a {Robot_Str.Theta.Zero.size}-axis robotic arm {Robot_Str.Name}: Work Envelope', fontsize=25, pad=25.0)
+    ax.set_title(f'The Dataset of a {Robot_Str.Theta.Zero.size}-axis robotic arm {Robot_Str.Name}: Work Envelope', fontsize=45, pad=25.0)
     # Set parameters of the graph (plot).
     #   Set the x ticks.
     ax.set_xticks(np.arange(np.min(x) - 0.1, np.max(x) + 0.1, 0.1))
     #   Set the y ticks.
     ax.set_yticks(np.arange(np.min(y) - 0.1, np.max(y) + 0.1, 0.1))
     #   Label.
-    ax.set_xlabel(r'x-axis in meters', fontsize=15, labelpad=10)
-    ax.set_ylabel(r'y-axis in meters', fontsize=15, labelpad=10) 
+    ax.set_xlabel(r'x-axis in meters', fontsize=25, labelpad=10)
+    ax.set_ylabel(r'y-axis in meters', fontsize=25, labelpad=10) 
     #   Set parameters of the visualization.
     ax.grid(which='major', linewidth = 0.15, linestyle = '--')
     # Get handles and labels for the legend.

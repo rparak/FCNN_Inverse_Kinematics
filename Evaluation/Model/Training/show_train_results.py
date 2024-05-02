@@ -65,7 +65,7 @@ def main():
 
     # Create a figure with 3 subplots.
     fig, ax = plt.subplots(1, 3)
-    fig.suptitle(f'Training Results for the Dataset Containing {CONST_NUM_OF_DATA} Data Points', fontsize=25)
+    fig.suptitle(f'Training Results for the Dataset Containing {CONST_NUM_OF_DATA} Data Points', fontsize=45, y=0.925)
 
     t = np.arange(0, len(data[:, 0]), 100)
     for i, mectric_i in enumerate(CONST_METRICES):
@@ -83,8 +83,8 @@ def main():
 
         # Set parameters of the graph (plot).
         #   Label.
-        ax[i].set_xlabel(r'Epoch', fontsize=15, labelpad=10)
-        ax[i].set_ylabel(mectric_i, fontsize=15, labelpad=10) 
+        ax[i].set_xlabel(r'Epoch', fontsize=25, labelpad=10)
+        ax[i].set_ylabel(mectric_i, fontsize=25, labelpad=10) 
         #   Set parameters of the visualization.
         ax[i].grid(which='major', linewidth = 0.15, linestyle = '--')
         # Show the labels (legends) of the graph.

@@ -29,7 +29,7 @@ Description:
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
-CONST_IK_CONFIGURATION = 1
+CONST_IK_CONFIGURATION = 0
 # Number of data (x, y coordinates) to be generated.
 CONST_NUM_OF_DATA = 500
 
@@ -114,14 +114,14 @@ def main():
         e_p_min.append(np.min(e_p_i)); e_p_max.append(np.max(e_p_i))
 
     # Set parameters of the graph (plot).
-    ax.set_title(r'Absolute Position Error (APE) in Individual Datasets on Multiple Randomly Generated Coordinates', fontsize=25, pad=25.0)
+    ax.set_title(r'Absolute Position Error (APE) in Individual Datasets on Multiple Randomly Generated Coordinates', fontsize=45, pad=25.0)
     #   Set the x ticks.
     ax.set_xticks(np.arange(0, CONST_NUM_OF_DATA + CONST_NUM_OF_DATA * 0.1, CONST_NUM_OF_DATA * 0.1))
     #   Set the y ticks.
     ax.set_yticks(np.arange(np.min(e_p_min) - 0.01, np.max(e_p_max) + 0.01, 0.01))
     #   Label
-    ax.set_xlabel(r'N', fontsize=15, labelpad=10)
-    ax.set_ylabel(r'$e_{p}(N)$ in meters', fontsize=15, labelpad=10) 
+    ax.set_xlabel(r'N', fontsize=25, labelpad=10)
+    ax.set_ylabel(r'$e_{p}(N)$ in meters', fontsize=25, labelpad=10) 
     #   Set parameters of the visualization.
     ax.grid(which='major', linewidth = 0.15, linestyle = '--')
     # Get handles and labels for the legend.

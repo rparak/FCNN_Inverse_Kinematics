@@ -31,7 +31,7 @@ CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # The configuration ID of the inverse kinematics (IK) solution.
 CONST_IK_CONFIGURATION = 0
 # Number of data (x, y coordinates) to be generated.
-CONST_NUM_OF_DATA = 1000
+CONST_NUM_OF_DATA = 500
 
 def main():
     """
@@ -118,22 +118,22 @@ def main():
         ax.plot(data[:, 0], data[:, 1], '.', color='#8d8d8d', alpha=1.0, markersize=12.0, markeredgewidth=3.0, markerfacecolor='#ffffff', 
                 label=f'Desired Coordinates: N = {CONST_NUM_OF_DATA}')
         ax.plot(predicted_i[:, 0], predicted_i[:, 1], '.', color=color_i, alpha=1.0, markersize=12.0, markeredgewidth=3.0, markerfacecolor='#ffffff', 
-                label=f'Desired Predicted: {aux_label} = {CONST_IK_CONFIGURATION}, MAE = {np.round(np.mean(e_p_i), 3)}')
+                label=f'Predicted Coordinates: {aux_label} = {CONST_IK_CONFIGURATION}, MAE = {np.round(np.mean(e_p_i), 3)}')
         
         # Visualization of the straight line between the desired and predicted coordinates of the robot's end effector.
         for _, (d_i, p_i) in enumerate(zip(data, predicted_i)):
             ax.plot([d_i[0], p_i[0]], [d_i[1], p_i[1]], '.--', color='#e06666', linewidth=1.0, label=f'$\Delta$e')
 
         # Set parameters of the graph (plot).
-        ax.set_title(f'Visualization of Predicted End-Effector Coordinates using a Neural-Network Method\nNeural-Network Type {i}', fontsize=25, pad=25.0)
+        ax.set_title(f'Visualization of Predicted End-Effector Coordinates using a Neural-Network Method\nNeural-Network Type {i}', fontsize=45, pad=25.0)
         # Set parameters of the graph (plot).
         #   Set the x ticks.
         ax.set_xticks(np.arange(np.min(data[:, 0]) - 0.1, np.max(data[:, 0]) + 0.1, 0.1))
         #   Set the y ticks.
         ax.set_yticks(np.arange(np.min(data[:, 1]) - 0.1, np.max(data[:, 1]) + 0.1, 0.1))
         #   Label.
-        ax.set_xlabel(r'x-axis in meters', fontsize=15, labelpad=10)
-        ax.set_ylabel(r'y-axis in meters', fontsize=15, labelpad=10) 
+        ax.set_xlabel(r'x-axis in meters', fontsize=25, labelpad=10)
+        ax.set_ylabel(r'y-axis in meters', fontsize=25, labelpad=10) 
         #   Set parameters of the visualization.
         ax.grid(which='major', linewidth = 0.15, linestyle = '--')
         # Get handles and labels for the legend.

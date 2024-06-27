@@ -23,6 +23,10 @@ Linux, macOS, Windows
 
 Text ...
 
+## Project Hierarchy
+
+Text ...
+
 ## Installation Dependencies
 
 It will be useful for the project to create a virtual environment using Conda. Conda is an open source package management system and environment management system that runs on Windows, macOS, and Linux. Conda quickly installs, runs and updates packages and their dependencies.

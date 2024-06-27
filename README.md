@@ -1,4 +1,4 @@
-# Fully-Connected Neural Network Inverse Kinematics (FCNN-IK) - 2-Link Robot Manipulator
+# Fully-Connected Neural Network Inverse Kinematics (FCNN-IK): 2-Link Robot Manipulator
 
 ## Requirements
 

@@ -1,4 +1,4 @@
-# DNN_Inverse_Kinematics
+# Fully-Connected Neural Network (FCNN) Inverse Kinematics (IK) - 2-Link Robot Manipulator
 
 tomorrow -> graphs, and final evaluation.
 

@@ -1,4 +1,4 @@
-# Fully-Connected Neural Network (FCNN) Inverse Kinematics (IK) - 2-Link Robot Manipulator
+# Fully-Connected Neural Network Inverse Kinematics (FCNN-IK) - 2-Link Robot Manipulator
 
 ## Requirements
 
@@ -72,3 +72,17 @@ $ ../user_name> conda info --envs
 Rename the environment from the old name to the new one.
 $ ../user_name> conda rename -n {old_name} {name_name}
 ```
+
+## Contact Info
+Roman.Parak@outlook.com
+
+## Citation (BibTex)
+```bash
+@misc{RomanParak_FCNN_IK,
+  author = {Roman Parak},
+  title = {Fully-Connected Neural Network Inverse Kinematics (FCNN-IK) for a 2-Link Robotic Manipulator},
+  year = {2024},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/rparak/RoLE}}
+}

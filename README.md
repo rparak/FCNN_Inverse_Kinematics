@@ -48,9 +48,6 @@ $ ../user_name> conda install -c conda-forge scienceplots
 Pandas
 $ ../user_name> conda install -c conda-forge pandas
 
-Scikit-learn
-$ ../user_name> conda install anaconda::scikit-learn
-
 Keras-Tuner
 $ ../user_name> conda install conda-forge::keras-tuner
 

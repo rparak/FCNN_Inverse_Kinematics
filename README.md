@@ -52,7 +52,7 @@ $ ../user_name> conda install conda-forge::keras-tuner
 
 Tensorflow
 $ ../user_name> conda install conda-forge::tensorflow
-
+```
 
 **Other useful commands for working with the Conda environment**
 ```

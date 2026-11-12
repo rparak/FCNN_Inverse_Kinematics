@@ -87,8 +87,8 @@ def main():
     #       'th_0', 'th_1': Absolute position of the robot's joints.
     x = data.iloc[:, 0:(Robot_Str.Theta.Zero.size + 1)].values; y = data.iloc[:, -Robot_Str.Theta.Zero.size:].values
     
-    # The batch size and the relative improvement thresholds of the callbacks are taken from the
-    # hyperparameter structure, so the optimization uses the same settings as the training.
+    # The batch size, the epsilon of the Adam optimizer and the relative improvement thresholds of the callbacks
+    # are taken from the hyperparameter structure, so the optimization uses the same settings as the training.
     Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure()
 
     # Optimization of the hyperparameters for the Fully-Connected Neural Network (FCNN).
@@ -99,7 +99,8 @@ def main():
     FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=Hyperparameters_Str['batch_size'],
                                    early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, early_stopping_min_delta=Hyperparameters_Str['early_stopping_min_delta'],
                                    lr_patience=CONST_LR_PATIENCE, lr_min_delta=Hyperparameters_Str['lr_min_delta'],
-                                   num_of_initial_points=CONST_NUM_OF_INITIAL_POINTS, save_results=True, num_of_top_trials=CONST_NUM_OF_TOP_TRIALS)
+                                   num_of_initial_points=CONST_NUM_OF_INITIAL_POINTS, save_results=True, adam_epsilon=Hyperparameters_Str['adam_epsilon'],
+                                   num_of_top_trials=CONST_NUM_OF_TOP_TRIALS)
 
 if __name__ == "__main__":
     sys.exit(main())

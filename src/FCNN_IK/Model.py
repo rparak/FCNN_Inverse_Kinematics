@@ -661,7 +661,7 @@ class FCNN_Optimizer_Cls(object):
                 Cls.Optimize(num_of_trials=30, epochs_per_trial=400, batch_size=128,
                              early_stopping_patience=100, early_stopping_min_delta=0.01,
                              lr_patience=20, lr_min_delta=0.001, num_of_initial_points=10,
-                             save_results=True)
+                             save_results=True, adam_epsilon=1e-4)
     """
 
     def __init__(self, x: tp.List[tp.Union[float, int]], y: tp.List[float], train_size: float, test_size: float,
@@ -776,7 +776,10 @@ class FCNN_Optimizer_Cls(object):
                                         use_bias=use_bias))
 
         # Finally, compile the model.
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters.Choice('learning_rate', values=[1e-2, 1e-3, 5e-4])),
+        #   Note:
+        #       The epsilon of the Adam optimizer is the same as in the training and is not part of the search.
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters.Choice('learning_rate', values=[1e-2, 1e-3, 5e-4]),
+                                                         epsilon=self.__adam_epsilon),
                       loss='mse', metrics=['mse', 'mae'])
 
         return model
@@ -804,7 +807,7 @@ class FCNN_Optimizer_Cls(object):
 
     def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, early_stopping_patience: int,
                  early_stopping_min_delta: float, lr_patience: int, lr_min_delta: float, num_of_initial_points: int,
-                 save_results: bool, num_of_top_trials: int = 5) -> None:
+                 save_results: bool, adam_epsilon: float, num_of_top_trials: int = 5) -> None:
         """
         Description:
             A function to optimize the Fully-Connected Neural Network (FCNN) model.
@@ -829,8 +832,12 @@ class FCNN_Optimizer_Cls(object):
                                                 Note:
                                                     The KerasTuner default is 3 * (number of hyperparameters).
             (9) save_results [bool]: Information about whether the optimization results will be saved.
-            (10) num_of_top_trials [int]: The number of the best configurations to be displayed.
+            (10) adam_epsilon [float]: The epsilon of the Adam optimizer (the same as in the training, not part of the search).
+            (11) num_of_top_trials [int]: The number of the best configurations to be displayed.
         """
+
+        # The epsilon of the Adam optimizer (used by __Compile() in each trial).
+        self.__adam_epsilon = adam_epsilon
 
         # The directory of the tuner (removed and re-created by overwrite=True).
         directory_path = f'{CONST_PROJECT_FOLDER}/Training/FCNN_Inverse_Kinematics_Optimizer'

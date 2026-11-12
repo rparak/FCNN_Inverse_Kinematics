@@ -14,6 +14,8 @@ import sklearn.model_selection
 import keras_tuner as kt
 # Shutil (High-level file operations)
 import shutil
+# Logging (Logging facility for Python)
+import logging
 # Custom Lib.:
 #   ../FCNN_IK/Utilities
 import FCNN_IK.Utilities as Utilities
@@ -37,6 +39,35 @@ CONST_HISTORY_KEYS = ['loss', 'mse', 'mae', 'val_loss', 'val_mse', 'val_mae', 'l
 # The maximum position error of the analytical IK solution for a reachable query.
 #   Unit: [meter]
 CONST_REACHABILITY_TOLERANCE = 1e-6
+# The harmless TensorFlow deprecation message to be suppressed.
+#   Note:
+#       tf.keras.backend.clear_session() internally calls tf.compat.v1.reset_default_graph(),
+#       which logs this message. All other TensorFlow messages are kept.
+CONST_SUPPRESSED_TF_MESSAGE = 'tf.reset_default_graph is deprecated'
+
+class Message_Filter_Cls(logging.Filter):
+    """
+    Description:
+        A logging filter that removes the records containing a specific message.
+
+    Initialization of the Class:
+        Args:
+            (1) message [string]: The (part of the) message to be removed.
+
+        Example:
+            Initialization:
+                tf.get_logger().addFilter(Message_Filter_Cls(CONST_SUPPRESSED_TF_MESSAGE))
+    """
+
+    def __init__(self, message: str) -> None:
+        super().__init__()
+        self.__message = message
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return self.__message not in record.getMessage()
+
+# Suppress the harmless deprecation message of TensorFlow (see CONST_SUPPRESSED_TF_MESSAGE).
+tf.get_logger().addFilter(Message_Filter_Cls(CONST_SUPPRESSED_TF_MESSAGE))
 
 @tf.keras.utils.register_keras_serializable(package='FCNN_IK')
 class Position_Consistency_Loss_Cls(tf.keras.losses.Loss):
@@ -294,19 +325,16 @@ class FCNN_Trainer_Cls(object):
         print(f'[INFO] >> file_path = {self.__file_path}_Scaler_x.pkl')
         print(f'[INFO] >> file_path = {self.__file_path}_Scaler_y.pkl')
 
-        # Save a model (image) of the neural network architecture.
+        # Save a summary (text) of the neural network architecture.
         #   Note:
-        #       Requires the 'pydot' package and the Graphviz binaries.
-        try:
-            tf.keras.utils.plot_model(self.__model, to_file=f'{self.__file_path}_Architecture.png', show_shapes=True,
-                                      show_layer_names=True)
-            if os.path.isfile(f'{self.__file_path}_Architecture.png'):
-                print(f'[INFO] The image of the neural network architecture has been successfully saved.')
-                print(f'[INFO] >> file_path = {self.__file_path}_Architecture.png')
-            else:
-                print(f'[WARNING] The image of the neural network architecture has not been saved (pydot/Graphviz not available).')
-        except ImportError as error:
-            print(f'[WARNING] The image of the neural network architecture has not been saved: {error}')
+        #       A diagram of the architecture can be created from the saved model ({file_path}.keras),
+        #       see ../Evaluation/Model/visu_architecture.py
+        summary = []
+        self.__model.summary(print_fn=lambda line, *args, **kwargs: summary.append(line))
+        with open(f'{self.__file_path}_Architecture.txt', 'w', encoding='utf-8') as f:
+            f.write('\n'.join(summary) + '\n')
+        print(f'[INFO] The summary of the neural network architecture has been successfully saved.')
+        print(f'[INFO] >> file_path = {self.__file_path}_Architecture.txt')
 
         # Save the data from the training.
         #   Note:
@@ -346,11 +374,10 @@ class FCNN_Trainer_Cls(object):
         layer_dropout = Hyperparameters.get('layer_dropout', 0.0); activation = Hyperparameters.get('activation', 'tanh')
         position_loss_weight = Hyperparameters.get('position_loss_weight', 0.0)
 
-        # Set the input layer of the FCNN model architecture.
+        # Set the input of the FCNN model architecture.
+        #   Note:
+        #       The input goes straight into the first hidden layer (no additional linear layer).
         self.__model.add(tf.keras.Input(shape=(self.__x_train.shape[1], )))
-        self.__model.add(tf.keras.layers.Dense(self.__x_train.shape[1], use_bias=Hyperparameters['use_bias']))
-        if layer_dropout > 0.0:
-            self.__model.add(tf.keras.layers.Dropout(layer_dropout))
 
         # Set the hidden layers of the FCNN model architecture.
         for i in range(0, Hyperparameters['num_of_hidden_layers']):
@@ -670,11 +697,10 @@ class FCNN_Optimizer_Cls(object):
         layer_dropout = Hyperparameters.Choice('layer_dropout', values=[0.0, 0.05])
         activation = Hyperparameters.Choice('activation', values=['tanh', 'gelu', 'swish'])
 
-        # Set the input layer of the FCNN model architecture.
+        # Set the input of the FCNN model architecture.
+        #   Note:
+        #       The input goes straight into the first hidden layer (no additional linear layer).
         model.add(tf.keras.Input(shape=(self.__x_train.shape[1], )))
-        model.add(tf.keras.layers.Dense(self.__x_train.shape[1], use_bias=use_bias))
-        if layer_dropout > 0.0:
-            model.add(tf.keras.layers.Dropout(layer_dropout))
 
         # Set the hidden layers of the FCNN model architecture.
         for i in range(0, Hyperparameters.Int('num_of_hidden_layers', min_value=2, max_value=5, step=1)):

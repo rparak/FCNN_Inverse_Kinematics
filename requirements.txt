@@ -3,7 +3,6 @@
 # Note:
 #   Native Windows TensorFlow >= 2.11 is CPU-only. GPU training requires WSL2 (or Linux),
 #   e.g. $ pip install "tensorflow[and-cuda]==2.18.1"
-#   tf.keras.utils.plot_model() additionally requires the Graphviz binaries (optional).
 numpy==2.0.2
 scipy==1.18.1
 pandas==3.1.1
@@ -14,4 +13,3 @@ SciencePlots==2.2.2
 tensorflow==2.18.1
 keras==3.15.1
 keras-tuner==1.4.8
-pydot==4.0.1

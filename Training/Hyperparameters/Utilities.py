@@ -28,6 +28,12 @@ def Get_Hyperparameter_Structure() -> tp.Dict:
             (best val_loss = 2.098e-06). The batch size, epochs, patience values and relative thresholds
             are not part of the search.
 
+            The learning-rate patience is the same as in the trials (20 epochs). The epsilon of the Adam
+            optimizer is 1e-4 instead of the Keras default (1e-7): with the default, the training at the
+            learning rate of 1e-2 diverged (N = 10000 at epoch 55-77, N = 100000 at epoch 11); with 1e-4 it
+            is stable and reaches a lower val_loss than a learning rate of 1e-3 with the default epsilon
+            (N = 10000, 400 epochs, seeds 0 and 1: 7.1e-6 and 5.5e-6 vs. 1.8e-5 and 1.8e-5).
+
             The structure of the hyperparameters:
                 'use_bias': Use the bias vector in the layers.
                 'layer_dropout': The dropout rate (0.0 -> no dropout layer).
@@ -35,6 +41,7 @@ def Get_Hyperparameter_Structure() -> tp.Dict:
                 'num_of_hidden_layers': The number of hidden layers.
                 'hidden_layer_{i}_units': The number of units of the i-th hidden layer.
                 'learning_rate': The initial learning rate of the Adam optimizer.
+                'adam_epsilon': The epsilon (numerical stability constant) of the Adam optimizer.
                 'batch_size': The number of samples processed before the model is updated.
                 'epochs': The maximum number of epochs (training is terminated by early stopping).
                 'early_stopping_patience': The number of epochs without improvement of 'val_loss'
@@ -63,11 +70,12 @@ def Get_Hyperparameter_Structure() -> tp.Dict:
             'hidden_layer_4_units': 384,
             'hidden_layer_5_units': 128,
             'learning_rate': 0.01,
+            'adam_epsilon': 1e-4,
             'batch_size': 128,
             'epochs': 10000,
             'early_stopping_patience': 500,
             'early_stopping_min_delta': 0.01,
-            'lr_patience': 100,
+            'lr_patience': 20,
             'lr_min_delta': 0.001,
             'position_loss_weight': 0.0
         }

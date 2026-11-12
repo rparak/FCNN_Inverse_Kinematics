@@ -37,6 +37,10 @@ CONST_HISTORY_KEYS = ['loss', 'mse', 'mae', 'val_loss', 'val_mse', 'val_mae', 'l
 # The maximum position error of the analytical IK solution for a reachable query.
 #   Unit: [meter]
 CONST_REACHABILITY_TOLERANCE = 1e-6
+# The divergence guard of the training (see Divergence_Guard_Cls): the training is stopped if 'val_loss'
+# exceeds CONST_DIVERGENCE_FACTOR x the best value so far, checked after CONST_DIVERGENCE_WARMUP_EPOCHS epochs.
+CONST_DIVERGENCE_FACTOR = 100.0
+CONST_DIVERGENCE_WARMUP_EPOCHS = 5
 # The harmless TensorFlow deprecation message to be suppressed.
 #   Note:
 #       tf.keras.backend.clear_session() internally calls tf.compat.v1.reset_default_graph(),
@@ -204,6 +208,55 @@ class Relative_Reduce_LR_On_Plateau_Cls(tf.keras.callbacks.ReduceLROnPlateau):
         # Note:
         #   Keras stores 'min_delta' with a negative sign for a minimized quantity.
         return Is_Relative_Improvement(monitor_value, reference_value, abs(self.min_delta))
+
+class Divergence_Guard_Cls(tf.keras.callbacks.Callback):
+    """
+    Description:
+        Stop the training if it has diverged, i.e. if the monitored quantity (e.g. 'val_loss') exceeds
+        a multiple of its best value so far. The check starts after a number of warm-up epochs; the best
+        value is tracked from the first epoch.
+
+        Note:
+            There is no rollback. The best model is kept by the checkpoint callback ('{file_path}.keras').
+
+    Initialization of the Class:
+        Args:
+            (1) monitor [string]: The quantity to be monitored.
+            (2) factor [float]: The divergence threshold as a multiple of the best value so far.
+            (3) warmup_epochs [int]: The number of epochs at the beginning of the training without the check.
+
+        Example:
+            Initialization:
+                # Initialization of the class.
+                Cls = Divergence_Guard_Cls(monitor='val_loss', factor=100.0, warmup_epochs=5)
+            Features:
+                # Use of the callback.
+                model.fit(.., callbacks=[Cls])
+    """
+
+    def __init__(self, monitor: str = 'val_loss', factor: float = 100.0, warmup_epochs: int = 5) -> None:
+        super().__init__()
+
+        self.monitor = monitor; self.factor = float(factor); self.warmup_epochs = int(warmup_epochs)
+        # Information whether the training has diverged.
+        self.diverged = False
+
+    def on_train_begin(self, logs: tp.Optional[tp.Dict] = None) -> None:
+        self.best = np.inf; self.diverged = False
+
+    def on_epoch_end(self, epoch: int, logs: tp.Optional[tp.Dict] = None) -> None:
+        value = (logs or {}).get(self.monitor)
+        if value is None:
+            return
+
+        if epoch >= self.warmup_epochs and (not np.isfinite(value) or value > self.factor * self.best):
+            print(f'\n[ERROR] The training has diverged at epoch {epoch + 1}: {self.monitor} = {value:.6e} exceeds '
+                  f'{self.factor:g} x the best value so far ({self.best:.6e}).')
+            print('[ERROR] The training is stopped. The best model so far is kept by the checkpoint.')
+            self.diverged = True; self.model.stop_training = True
+            return
+
+        self.best = min(self.best, float(value))
 
 class FCNN_Trainer_Cls(object):
     """
@@ -406,8 +459,12 @@ class FCNN_Trainer_Cls(object):
             loss = 'mse'
 
         # Finally, compile the model.
-        self.__model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters['learning_rate']), loss=loss,
-                             metrics=['mse', 'mae'])
+        #   Note:
+        #       A larger epsilon of the Adam optimizer ('adam_epsilon') limits the step size when the gradients
+        #       become small and prevents the divergence of the training at a high learning rate.
+        self.__model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=Hyperparameters['learning_rate'],
+                                                                epsilon=Hyperparameters['adam_epsilon']),
+                             loss=loss, metrics=['mse', 'mae'])
 
     def Train(self, epochs: int, batch_size: int) -> None:
         """
@@ -423,6 +480,9 @@ class FCNN_Trainer_Cls(object):
                 The model with the lowest validation loss is saved by the checkpoint ('{file_path}.keras'),
                 independent of the thresholds.
 
+                If the validation loss diverges (see Divergence_Guard_Cls), the training is stopped with
+                an [ERROR] message.
+
         Args:
             (1) epochs [int]: The maximum number of epochs (iterations) to train the model.
             (2) batch_size [int]: The number of samples processed before the model is updated.
@@ -432,13 +492,15 @@ class FCNN_Trainer_Cls(object):
         #   1\ Save the best model (native Keras format).
         #   2\ Stop the training when the validation loss has stopped improving (relative threshold) and restore the best weights.
         #   3\ Reduce the learning rate when the validation loss has stopped improving (relative threshold).
+        #   4\ Stop the training with an error message if the validation loss diverges (no rollback).
         callbacks = [tf.keras.callbacks.ModelCheckpoint(filepath=f'{self.__file_path}.keras', monitor='val_loss',
                                                         save_best_only=True, verbose=1),
                      Relative_Early_Stopping_Cls(monitor='val_loss', patience=self.__Hyperparameters['early_stopping_patience'],
                                                  min_delta=self.__Hyperparameters['early_stopping_min_delta'], restore_best_weights=True,
                                                  verbose=1),
                      Relative_Reduce_LR_On_Plateau_Cls(monitor='val_loss', factor=0.5, patience=self.__Hyperparameters['lr_patience'],
-                                                       min_delta=self.__Hyperparameters['lr_min_delta'], min_lr=1e-6, verbose=1)]
+                                                       min_delta=self.__Hyperparameters['lr_min_delta'], min_lr=1e-6, verbose=1),
+                     Divergence_Guard_Cls(monitor='val_loss', factor=CONST_DIVERGENCE_FACTOR, warmup_epochs=CONST_DIVERGENCE_WARMUP_EPOCHS)]
 
         self.__train_data = self.__model.fit(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs, batch_size=batch_size, verbose=1,
                                              validation_data=(self.__x_validation_scaled, self.__y_validation_scaled), callbacks=callbacks)

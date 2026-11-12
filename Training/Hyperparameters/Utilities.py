@@ -8,11 +8,14 @@ Desription:
     using a Fully-Connected Neural Network (FCNN).
 """
 
-def Get_Hyperparameter_Structure(N: int) -> tp.Dict:
+def Get_Hyperparameter_Structure() -> tp.Dict:
     """
     Description:
         Get the hyperparameter structure to train the inverse kinematics (IK) task
         using a fully connected neural network (FCNN).
+
+        The same architecture and the same training hyperparameters are used for all dataset
+        sizes (N = 1000, 10000, 100000), so the amount of data is the only variable.
 
         To optimize the hyperparameter structure of a Fully-Connected
         Neural Network (FCNN), see the following program:
@@ -20,7 +23,7 @@ def Get_Hyperparameter_Structure(N: int) -> tp.Dict:
 
         Note:
             The values below are DEFAULTS, to be replaced by the results of the hyperparameter
-            optimization (../Training/optimize.py).
+            optimization (../Training/optimize.py, run once on N = 10000).
 
             The structure of the hyperparameters:
                 'use_bias': Use the bias vector in the layers.
@@ -42,63 +45,23 @@ def Get_Hyperparameter_Structure(N: int) -> tp.Dict:
                 'position_loss_weight': The weight (lambda) of the position-consistency loss
                                         (0.0 -> plain MSE loss).
 
-    Args:
-        (1) N [int]: The amount of data generated to train the model.
-
     Returns:
-        (1) parameter [Dictionary {..}]: The structure of the hyperparameters containing the amount of
-                                         data generated to train the model.
+        (1) parameter [Dictionary {..}]: The structure of the hyperparameters.
     """
 
-    return {
-        1000: {'use_bias': True,
-               'layer_dropout': 0.0,
-               'activation': 'tanh',
-               'num_of_hidden_layers': 3,
-               'hidden_layer_1_units': 64,
-               'hidden_layer_2_units': 128,
-               'hidden_layer_3_units': 64,
-               'learning_rate': 0.001,
-               'batch_size': 64,
-               'epochs': 10000,
-               'early_stopping_patience': 1000,
-               'early_stopping_min_delta': 0.01,
-               'lr_patience': 200,
-               'lr_min_delta': 0.001,
-               'position_loss_weight': 0.0
-            },
-        10000: {'use_bias': True,
-                'layer_dropout': 0.0,
-                'activation': 'tanh',
-                'num_of_hidden_layers': 4,
-                'hidden_layer_1_units': 128,
-                'hidden_layer_2_units': 256,
-                'hidden_layer_3_units': 256,
-                'hidden_layer_4_units': 128,
-                'learning_rate': 0.001,
-                'batch_size': 128,
-                'epochs': 10000,
-                'early_stopping_patience': 500,
-                'early_stopping_min_delta': 0.01,
-                'lr_patience': 100,
-                'lr_min_delta': 0.001,
-                'position_loss_weight': 0.0
-            },
-        100000: {'use_bias': True,
-                 'layer_dropout': 0.0,
-                 'activation': 'tanh',
-                 'num_of_hidden_layers': 4,
-                 'hidden_layer_1_units': 256,
-                 'hidden_layer_2_units': 512,
-                 'hidden_layer_3_units': 512,
-                 'hidden_layer_4_units': 256,
-                 'learning_rate': 0.001,
-                 'batch_size': 256,
-                 'epochs': 10000,
-                 'early_stopping_patience': 300,
-                 'early_stopping_min_delta': 0.01,
-                 'lr_patience': 50,
-                 'lr_min_delta': 0.001,
-                 'position_loss_weight': 0.0
-            }
-    }[N]
+    return {'use_bias': True,
+            'layer_dropout': 0.0,
+            'activation': 'tanh',
+            'num_of_hidden_layers': 3,
+            'hidden_layer_1_units': 128,
+            'hidden_layer_2_units': 256,
+            'hidden_layer_3_units': 128,
+            'learning_rate': 0.001,
+            'batch_size': 128,
+            'epochs': 10000,
+            'early_stopping_patience': 500,
+            'early_stopping_min_delta': 0.01,
+            'lr_patience': 100,
+            'lr_min_delta': 0.001,
+            'position_loss_weight': 0.0
+        }

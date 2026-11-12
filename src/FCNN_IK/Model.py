@@ -231,9 +231,9 @@ class FCNN_Trainer_Cls(object):
         Example:
             Initialization:
                 # Assignment of the variables.
-                #   Hyperparameters of a specific robotic structure
+                #   Hyperparameters (the same for all dataset sizes)
                 #   obtained from optimization.
-                Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure(N)
+                Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure()
                 #   In/Out data.
                 x_in  = Dataset[:, ..]
                 y_out = Dataset[:, ..]
@@ -762,6 +762,10 @@ class FCNN_Optimizer_Cls(object):
             for i in range(best_values['num_of_hidden_layers'], 5):
                 best_values.pop(f'hidden_layer_{i + 1}_units', None)
             best_values['val_loss'] = optimizer.oracle.get_best_trials(num_trials=1)[0].score
+            #   Note:
+            #       The amount of data used for the optimization. The results apply to the single hyperparameter
+            #       structure used for all dataset sizes (../Training/Hyperparameters/Utilities.py).
+            best_values['num_of_data'] = self.__x_train.shape[0] + self.__x_validation.shape[0]
             self.__Save(best_values)
 
         # Release GPU resources when the optimization process is already complete.

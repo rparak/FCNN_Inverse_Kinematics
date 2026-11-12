@@ -12,6 +12,8 @@ import pandas as pd
 import Parameters.Robot
 #   ../FCNN_IK/Model
 import FCNN_IK.Model
+#   ../Hyperparameters/Utilities
+import Hyperparameters.Utilities
 
 """
 Notes:
@@ -26,15 +28,16 @@ Description:
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
-# generated to train the model.
-CONST_NUM_OF_DATA = 100000
+# generated to optimize the model.
+#   Note:
+#       The optimization is run once (on N = 10000) and the results apply to the single
+#       hyperparameter structure used for all dataset sizes, see ../Training/Hyperparameters/Utilities.py
+CONST_NUM_OF_DATA = 10000
 # Optimization configuration.
 #   The number of trials.
 CONST_NUM_OF_TRIALS = 100
 #   The maximum number of epochs per trial.
 CONST_EPOCHS_PER_TRIAL = 100
-#   The number of samples processed before the model is updated.
-CONST_BATCH_SIZE = 64
 #   The number of epochs without improvement of 'val_loss' after which the trial is stopped.
 CONST_EARLY_STOPPING_PATIENCE = 20
 
@@ -53,7 +56,9 @@ def main():
 
     # Create a file path to read/write the data.
     file_path_r = f'{project_folder}/Data/Dataset/Config_N_{CONST_NUM_OF_DATA}'
-    file_path_w = f'{project_folder}/Data/Model/Config_N_{CONST_NUM_OF_DATA}'
+    #   Note:
+    #       The results are saved to f'{file_path_w}_Optimizer_Best_Results.txt'
+    file_path_w = f'{project_folder}/Training/Hyperparameters/FCNN_IK'
 
     # Read the data from a file (*.zip).
     #   Note:
@@ -71,12 +76,16 @@ def main():
     #       'th_0', 'th_1': Absolute position of the robot's joints.
     x = data.iloc[:, 0:(Robot_Str.Theta.Zero.size + 1)].values; y = data.iloc[:, -Robot_Str.Theta.Zero.size:].values
     
+    # The batch size is taken from the hyperparameter structure, so the optimization uses the
+    # same setting as the training.
+    Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure()
+
     # Optimization of the hyperparameters for the Fully-Connected Neural Network (FCNN).
     #   1\ Initialization.
     FCNN_IK_Optimizer_Cls = FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
                                                              file_path=file_path_w)
     #   2\ Optimization.
-    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=CONST_BATCH_SIZE, 
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=Hyperparameters_Str['batch_size'], 
                                    early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, save_results=True)
 
 if __name__ == "__main__":

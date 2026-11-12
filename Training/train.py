@@ -29,6 +29,9 @@ Description:
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
+#   Note:
+#       The architecture and the training hyperparameters are the same for all
+#       dataset sizes, see ../Training/Hyperparameters/Utilities.py
 CONST_NUM_OF_DATA = 1000
 
 def main():
@@ -67,8 +70,9 @@ def main():
     #   1-2\ Initialization and Compilation.
     #       Note:
     #           The hyperparameters (incl. batch size, maximum number of epochs and patience 
-    #           values) are defined in ../Training/Hyperparameters/Utilities.py
-    Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure(CONST_NUM_OF_DATA)
+    #           values) are defined in ../Training/Hyperparameters/Utilities.py and they are
+    #           the same for all dataset sizes.
+    Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure()
     FCNN_IK_Trainer_Cls = FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
                                                          file_path=file_path_w, Robot_Parameters_Str=Robot_Str)
     FCNN_IK_Trainer_Cls.Compile(Hyperparameters_Str)

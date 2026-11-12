@@ -22,8 +22,11 @@ def Get_Hyperparameter_Structure() -> tp.Dict:
             ../Training/optimize.py
 
         Note:
-            The values below are DEFAULTS, to be replaced by the results of the hyperparameter
-            optimization (../Training/optimize.py, run once on N = 10000).
+            The architecture, activation, dropout and learning rate come from a 30-trial Bayesian
+            search (KerasTuner, objective val_loss) on N = 10000 with 400 epochs per trial
+            (../Training/optimize.py), see ../Training/Hyperparameters/FCNN_IK_Optimizer_Best_Results.txt
+            (best val_loss = 2.098e-06). The batch size, epochs, patience values and relative thresholds
+            are not part of the search.
 
             The structure of the hyperparameters:
                 'use_bias': Use the bias vector in the layers.
@@ -49,14 +52,17 @@ def Get_Hyperparameter_Structure() -> tp.Dict:
         (1) parameter [Dictionary {..}]: The structure of the hyperparameters.
     """
 
+    # Results of the hyperparameter optimization (30-trial Bayesian search on N = 10000, 400 epochs per trial).
     return {'use_bias': True,
             'layer_dropout': 0.0,
-            'activation': 'tanh',
-            'num_of_hidden_layers': 3,
-            'hidden_layer_1_units': 128,
-            'hidden_layer_2_units': 256,
-            'hidden_layer_3_units': 128,
-            'learning_rate': 0.001,
+            'activation': 'gelu',
+            'num_of_hidden_layers': 5,
+            'hidden_layer_1_units': 384,
+            'hidden_layer_2_units': 448,
+            'hidden_layer_3_units': 512,
+            'hidden_layer_4_units': 384,
+            'hidden_layer_5_units': 128,
+            'learning_rate': 0.01,
             'batch_size': 128,
             'epochs': 10000,
             'early_stopping_patience': 500,

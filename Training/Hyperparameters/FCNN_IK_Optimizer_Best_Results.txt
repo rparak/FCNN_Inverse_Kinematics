@@ -1,0 +1,12 @@
+use_bias: True
+layer_dropout: 0.0
+activation: gelu
+num_of_hidden_layers: 5
+hidden_layer_1_units: 384
+hidden_layer_2_units: 448
+learning_rate: 0.01
+hidden_layer_3_units: 512
+hidden_layer_4_units: 384
+hidden_layer_5_units: 128
+val_loss: 2.098027607644326e-06
+num_of_data: 10000

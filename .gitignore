@@ -1,3 +1,12 @@
 *.pyc
 .DS_Store
 **/.DS_Store
+
+# Local virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+
+# KerasTuner search directory (Training/optimize.py)
+Training/FCNN_Inverse_Kinematics_Optimizer/

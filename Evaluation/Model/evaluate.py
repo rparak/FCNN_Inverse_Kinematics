@@ -1,0 +1,174 @@
+# System (Default)
+import sys
+#   Add access if it is not in the system path.
+if '../../' + 'src' not in sys.path:
+    sys.path.append('../../' + 'src')
+# OS (Operating system interfaces)
+import os
+# Time (Time access and conversions)
+import time
+# Typing (Support for type hints)
+import typing as tp
+# Numpy (Array computing) [pip3 install numpy]
+import numpy as np
+# Pandas (Data analysis and manipulation) [pip3 install pandas]
+import pandas as pd
+# Custom Lib.:
+#   ../Parameters/Robot
+import Parameters.Robot
+#   ../Kinematics/Core
+import Kinematics.Core
+#   ../FCNN_IK/Model
+import FCNN_IK.Model
+#   ../Utilities/Dataset
+import Utilities.Dataset as Dataset
+
+"""
+Description:
+    Initialization of constants.
+"""
+# Set the structure of the main parameters of the robot.
+CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
+# The models (dataset configurations) to be evaluated.
+CONST_NUM_OF_DATA = [1000, 10000, 100000]
+# The name of the fixed test set (without extension).
+CONST_TEST_SET_NAME = 'Test_N_10000'
+# The number of iterations of the hybrid refinement (NN + refinement).
+#   Note:
+#       0 -> the refinement is not evaluated.
+CONST_REFINE_ITERATIONS = 20
+# The number of repetitions to measure the inference time (median).
+CONST_NUM_OF_TIME_REPETITIONS = 5
+# The columns of the results table and the format of the values.
+CONST_RESULTS_FORMAT = {'method': '{}', 'N': '{}', 'cfg': '{}', 'num_of_test_samples': '{}',
+                        'e_p_mean_mm': '{:.4g}', 'e_p_median_mm': '{:.4g}', 'e_p_p95_mm': '{:.4g}', 'e_p_max_mm': '{:.4g}',
+                        'e_th_mean_deg': '{:.4g}', 'e_th_max_deg': '{:.4g}', 'within_limits_pct': '{:.2f}',
+                        't_per_sample_us': '{:.2f}'}
+
+def Compute_Metrics(theta_desired: tp.List[float], theta_predicted: tp.List[float], p: tp.List[float],
+                    Robot_Parameters_Str: Parameters.Robot) -> tp.Dict:
+    """
+    Description:
+        A function to compute the evaluation metrics of the predicted absolute joint positions.
+
+    Args:
+        (1) theta_desired [Vector<float> nxm]: Desired absolute joint positions (labels) in radians.
+        (2) theta_predicted [Vector<float> nxm]: Predicted absolute joint positions in radians.
+        (3) p [Vector<float> nx2]: Desired TCP (tool center point) positions in the x, y axes.
+                                   Unit: [meter]
+        (4) Robot_Parameters_Str [Robot_Parameters_Str(object)]: The structure of the main parameters of the robot.
+
+    Returns:
+        (1) parameter [Dictionary {..}]: The evaluation metrics.
+                                         Note:
+                                            'e_p_*_mm': Position error ||p - FK(theta_predicted)|| in millimeters.
+                                            'e_th_*_deg': Joint error |theta_desired - theta_predicted| in degrees
+                                                          (over all joints).
+                                            'within_limits_pct': Share of predictions within the joint limits.
+    """
+
+    # Position error in millimeters.
+    e_p = 1000.0 * np.linalg.norm(p - Kinematics.Core.Forward_Kinematics(theta_predicted, Robot_Parameters_Str)[1], axis=1)
+    # Joint error in degrees.
+    e_th = np.degrees(np.abs(theta_desired - theta_predicted))
+
+    return {'num_of_test_samples': p.shape[0],
+            'e_p_mean_mm': np.mean(e_p), 'e_p_median_mm': np.median(e_p), 'e_p_p95_mm': np.percentile(e_p, 95),
+            'e_p_max_mm': np.max(e_p), 'e_th_mean_deg': np.mean(e_th), 'e_th_max_deg': np.max(e_th),
+            'within_limits_pct': 100.0 * np.mean(Kinematics.Core.Is_Within_Joint_Limits(theta_predicted, Robot_Parameters_Str))}
+
+def Print_Markdown_Table(results: pd.DataFrame) -> None:
+    """
+    Description:
+        A function to display the results as a Markdown table in the console.
+
+    Args:
+        (1) results [pd.DataFrame]: The results table.
+    """
+
+    print('| ' + ' | '.join(results.columns) + ' |')
+    print('|' + '|'.join(['---'] * len(results.columns)) + '|')
+    for row in results.to_dict('records'):
+        print('| ' + ' | '.join([CONST_RESULTS_FORMAT[key].format(row[key]) for key in results.columns]) + ' |')
+
+def main():
+    """
+    Description:
+        A program to evaluate the trained neural-network inverse kinematics models on the fixed test set.
+
+        For each model, the following metrics are computed for both configurations of the solution:
+            - position error ||p - FK(theta_predicted)||: mean, median, 95th percentile and max in millimeters
+            - joint error |theta - theta_predicted|: mean and max in degrees
+            - share of predictions within the joint limits
+            - inference time per sample (batch prediction)
+
+        The pure neural-network results (NN) and the results with the hybrid refinement (NN + refinement) are
+        reported separately.
+
+        The results are written to the file below:
+            ../Data/Results/Results.csv
+    """
+
+    # Locate the path to the project folder.
+    project_folder = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
+
+    # Initialization of the structure of the main parameters of the robot.
+    Robot_Str = CONST_ROBOT_TYPE
+
+    # Read the fixed test set from a file (*.zip).
+    data = Dataset.Load(f'{project_folder}/Data/Dataset/{CONST_TEST_SET_NAME}').values
+    x = data[:, 0:3]; theta = data[:, 3:]; p = data[:, 0:2]; cfg = data[:, 2].astype(np.int64)
+    print(f'[INFO] Test set: {CONST_TEST_SET_NAME} ({data.shape[0]} samples)')
+
+    results = []
+    for _, N_i in enumerate(CONST_NUM_OF_DATA):
+        file_path = f'{project_folder}/Data/Model/Config_N_{N_i}'
+        if not os.path.isfile(f'{file_path}.keras'):
+            print(f'[WARNING] The model {file_path}.keras does not exist. The model is skipped.')
+            continue
+
+        # Initialization of the predictor.
+        FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{file_path}_Scaler_x.pkl', f'{file_path}_Scaler_y.pkl',
+                                                                 f'{file_path}.keras', Robot_Str)
+
+        methods = [('NN', 0)] + ([(f'NN + refinement ({CONST_REFINE_ITERATIONS} it.)', CONST_REFINE_ITERATIONS)] if CONST_REFINE_ITERATIONS > 0 else [])
+        for _, (method_i, refine_iterations_i) in enumerate(methods):
+            # Warm-up of the predictor.
+            _ = FCNN_IK_Predictor_Cls.Predict(x[0:2], refine_iterations=refine_iterations_i, verbose=False)
+
+            # Predict the absolute joint positions of the test set (batch prediction) and measure the time.
+            t = []
+            for i in range(CONST_NUM_OF_TIME_REPETITIONS):
+                t_0 = time.perf_counter()
+                (_, theta_predicted) = FCNN_IK_Predictor_Cls.Predict(x, refine_iterations=refine_iterations_i, verbose=(i == 0))
+                t.append(time.perf_counter() - t_0)
+            t_per_sample = 1e6 * np.median(t) / x.shape[0]
+
+            # Compute the metrics for all samples and for each configuration.
+            for cfg_i in ['all'] + [str(c) for c in np.unique(cfg)]:
+                idx = np.ones(cfg.shape, dtype=bool) if cfg_i == 'all' else (cfg == int(cfg_i))
+                results.append({'method': method_i, 'N': N_i, 'cfg': cfg_i,
+                                **Compute_Metrics(theta[idx], theta_predicted[idx], p[idx], Robot_Str),
+                                't_per_sample_us': t_per_sample})
+
+        # Release class object.
+        del FCNN_IK_Predictor_Cls
+
+    if results == []:
+        print('[ERROR] No model was evaluated.')
+        return 1
+
+    # Save the results to the file (*.csv).
+    results = pd.DataFrame(results, columns=list(CONST_RESULTS_FORMAT.keys()))
+    os.makedirs(f'{project_folder}/Data/Results', exist_ok=True)
+    results.to_csv(f'{project_folder}/Data/Results/Results.csv', index=False, float_format='%.6g')
+    print(f'[INFO] The results have been successfully saved.')
+    print(f'[INFO] >> file_path = {project_folder}/Data/Results/Results.csv')
+
+    # Display the results as Markdown tables (both configurations, cfg = all).
+    for method_i in results['method'].unique():
+        print(f'\n[INFO] Method: {method_i} (test set: {CONST_TEST_SET_NAME}, cfg = all)\n')
+        Print_Markdown_Table(results[(results['method'] == method_i) & (results['cfg'] == 'all')].drop(columns=['method', 'cfg']))
+
+if __name__ == "__main__":
+    sys.exit(main())

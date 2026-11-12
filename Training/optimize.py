@@ -28,6 +28,15 @@ CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # A dataset configuration that specifies the amount of data 
 # generated to train the model.
 CONST_NUM_OF_DATA = 100000
+# Optimization configuration.
+#   The number of trials.
+CONST_NUM_OF_TRIALS = 100
+#   The maximum number of epochs per trial.
+CONST_EPOCHS_PER_TRIAL = 100
+#   The number of samples processed before the model is updated.
+CONST_BATCH_SIZE = 64
+#   The number of epochs without improvement of 'val_loss' after which the trial is stopped.
+CONST_EARLY_STOPPING_PATIENCE = 20
 
 def main():
     """
@@ -67,8 +76,8 @@ def main():
     FCNN_IK_Optimizer_Cls = FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
                                                              file_path=file_path_w)
     #   2\ Optimization.
-    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=100, epochs_per_trial=100, batch_size=64, 
-                                   save_results=True)
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=CONST_BATCH_SIZE, 
+                                   early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, save_results=True)
 
 if __name__ == "__main__":
     sys.exit(main())

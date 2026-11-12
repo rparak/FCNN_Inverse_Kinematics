@@ -14,13 +14,12 @@ import matplotlib.pyplot as plt
 # Custom Lib.:
 #   ../Parameters/Robot
 import Parameters.Robot
-#   ../Transformation/Utilities/Mathematics
-import Transformation.Utilities.Mathematics as Mathematics
 #   ../Kinematics/Core
 import Kinematics.Core
 #   ../FCNN_IK/Model
 import FCNN_IK.Model
-
+#   ../Utilities/Dataset
+import Utilities.Dataset as Dataset
 
 """
 Description:
@@ -28,18 +27,27 @@ Description:
 """
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
-# The configuration ID of the inverse kinematics (IK) solution.
-CONST_IK_CONFIGURATION = 0
-# Number of data (x, y coordinates) to be generated.
-CONST_NUM_OF_DATA = 500
+# The models (dataset configurations) to be visualized.
+CONST_NUM_OF_DATA = [1000, 10000, 100000]
+# The name of the fixed test set (without extension).
+CONST_TEST_SET_NAME = 'Test_N_10000'
+# The number of iterations of the hybrid refinement (NN + refinement).
+#   Note:
+#       0 -> pure neural-network prediction.
+CONST_REFINE_ITERATIONS = 0
+# Save the figure to the file (*.png) for the README.
+#   Note:
+#       f'{project_folder}/images/Error.png' or f'{project_folder}/images/Error_Refined.png'
+CONST_SAVE_FIGURE = False
 
 def main():
     """
     Description:
-        A program to visualize the absolute position error for an individual dataset configuration. 
-        
-        The comparison is tested on multiple randomly generated coordinates calculated from reachable 
-        points using forward kinematics.
+        A program to visualize the distribution of the absolute position error (APE) of the individual models
+        on the fixed test set (both configurations of the solution).
+
+        The box shows the interquartile range with the median, the whiskers show the 5th and 95th percentiles,
+        and the points show the samples outside the whiskers.
     """
 
     # Locate the path to the project folder.
@@ -47,89 +55,71 @@ def main():
 
     # Initialization of the structure of the main parameters of the robot.
     Robot_Str = CONST_ROBOT_TYPE
-    
-    # The tolerance of the data.
-    tolerance = 4
-    
-    # Generates data up to the desired maximum number of iterations, which is given by the constant {CONST_NUM_OF_DATA}.
-    i = 0; data = []; tolerance = 4
-    while CONST_NUM_OF_DATA > i:
-        # Random generation of absolute joint orientations.
-        #   Note:
-        #       The boundaries of the random generation are defined in the object structure.
-        theta_rand = np.random.uniform(Robot_Str.Theta.Limit[:, 0], Robot_Str.Theta.Limit[:, 1])
 
-        # Obtain the x, y coordinates using forward kinematics.
-        p_tmp = np.round(Kinematics.Core.Forward_Kinematics(theta_rand, Robot_Str)[1], tolerance).astype('float32')
+    # Read the fixed test set from a file (*.zip).
+    data = Dataset.Load(f'{project_folder}/Data/Dataset/{CONST_TEST_SET_NAME}').values
 
-        # If there is a duplicate of the input data, skip to the next step.
-        if data != []:
-            for _, x_i in enumerate(data):
-                if p_tmp in x_i[0:2]:
-                    continue
+    e_p = []; labels = []
+    for _, N_i in enumerate(CONST_NUM_OF_DATA):
+        file_path = f'{project_folder}/Data/Model/Config_N_{N_i}'
+        if not os.path.isfile(f'{file_path}.keras'):
+            print(f'[WARNING] The model {file_path}.keras does not exist. The model is skipped.')
+            continue
 
-        # Store the acquired data.
-        data.append(p_tmp)
-
-        i += 1
-
-    e_p = []
-    for _, N_i in enumerate([1000, 10000, 100000]):
         # Prediction of the absolute joint position of the robotic arm.
         #   1\ Initialization.
-        FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{project_folder}/Data/Model/Config_N_{N_i}_Scaler_x.pkl', 
-                                                                 f'{project_folder}/Data/Model/Config_N_{N_i}_Scaler_y.pkl', 
-                                                                 f'{project_folder}/Data/Model/Config_N_{N_i}.h5')
-        
-        # Obtain the Absolute Position Error (APE) using neural-netowrk inverse kinematics from the generated 
-        # radom coordinates.
-        e_p_i = []
-        for _, data_i in enumerate(np.array(data, dtype=np.float32)):
-            # Predict the absolute joint position of the robotic arm from the input position of the end-effector 
-            # and configuration of the solution.
-            theta_predicted = FCNN_IK_Predictor_Cls.Predict(np.array([data_i[0], data_i[1], CONST_IK_CONFIGURATION], dtype=np.float32))[0]
+        FCNN_IK_Predictor_Cls = FCNN_IK.Model.FCNN_Predictor_Cls(f'{file_path}_Scaler_x.pkl', f'{file_path}_Scaler_y.pkl',
+                                                                 f'{file_path}.keras', Robot_Str)
+        #   2\ Prediction (batch).
+        (_, theta_predicted) = FCNN_IK_Predictor_Cls.Predict(data[:, 0:3], refine_iterations=CONST_REFINE_ITERATIONS)
 
-            # Obtain the absolute orientation error.
-            e_p_i.append(Mathematics.Euclidean_Norm(np.round(Kinematics.Core.Forward_Kinematics(theta_predicted, Robot_Str)[1], tolerance).astype('float32') - data_i))
-
-        # Store the data.
-        e_p.append(e_p_i)
+        # Obtain the absolute position error in millimeters.
+        e_p_i = 1000.0 * np.linalg.norm(data[:, 0:2] - Kinematics.Core.Forward_Kinematics(theta_predicted, Robot_Str)[1], axis=1)
+        e_p.append(e_p_i); labels.append(f'N = {N_i}')
+        print(f'[INFO] N = {N_i}: e_p mean = {np.mean(e_p_i):.4g} mm, median = {np.median(e_p_i):.4g} mm, '
+              f'p95 = {np.percentile(e_p_i, 95):.4g} mm, max = {np.max(e_p_i):.4g} mm')
 
         # Release class object.
         del FCNN_IK_Predictor_Cls
+
+    if e_p == []:
+        print('[ERROR] No model was found.')
+        return 1
 
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
     # Create a figure.
-    _, ax = plt.subplots()
+    figure, ax = plt.subplots(figsize=(8, 5))
 
-    e_p_max = []; e_p_min = []; aux_label = r'$IK_{Cfg}$'; color = ['#3d85c6', '#6aa84f', '#674ea7']
-    for i, e_p_i in enumerate(e_p):
-        # Visualization of relevant structures.
-        ax.plot(e_p_i, '.', color=color[i], alpha=1.0, markersize=8.0, markeredgewidth=2.0, markerfacecolor='#ffffff', 
-                label=f'NN Type {i}: {aux_label} = {CONST_IK_CONFIGURATION}, MAE = {np.round(np.mean(e_p_i), 3)}')
-
-        # Get the minimum and maximum of the position error.
-        e_p_min.append(np.min(e_p_i)); e_p_max.append(np.max(e_p_i))
+    # Visualization of relevant structures.
+    color = ['#3d85c6', '#6aa84f', '#674ea7']
+    box = ax.boxplot(e_p, whis=(5, 95), widths=0.5, patch_artist=True,
+                     medianprops=dict(color='#000000', linewidth=1.5),
+                     flierprops=dict(marker='.', markersize=2.0, markerfacecolor='#8d8d8d', markeredgecolor='#8d8d8d', alpha=0.5))
+    ax.set_xticks(np.arange(1, len(labels) + 1)); ax.set_xticklabels(labels)
+    for i, patch_i in enumerate(box['boxes']):
+        patch_i.set_facecolor(color[i % len(color)]); patch_i.set_alpha(0.6)
+    # Mean of the position error.
+    ax.plot(np.arange(1, len(e_p) + 1), [np.mean(e_p_i) for e_p_i in e_p], 'D', color='#e06666', markersize=6.0, label='Mean')
 
     # Set parameters of the graph (plot).
-    ax.set_title(r'Absolute Position Error (APE) in Individual Datasets on Multiple Randomly Generated Coordinates', fontsize=45, pad=25.0)
-    #   Set the x ticks.
-    ax.set_xticks(np.arange(0, CONST_NUM_OF_DATA + CONST_NUM_OF_DATA * 0.1, CONST_NUM_OF_DATA * 0.1))
-    #   Set the y ticks.
-    ax.set_yticks(np.arange(np.min(e_p_min) - 0.01, np.max(e_p_max) + 0.01, 0.01))
-    #   Label
-    ax.set_xlabel(r'N', fontsize=25, labelpad=10)
-    ax.set_ylabel(r'$e_{p}(N)$ in meters', fontsize=25, labelpad=10) 
+    method = 'NN' if CONST_REFINE_ITERATIONS == 0 else f'NN + refinement ({CONST_REFINE_ITERATIONS} it.)'
+    ax.set_title(f'Absolute Position Error on the Test Set ({data.shape[0]} samples, both configurations): {method}', fontsize=12, pad=10.0)
+    ax.set_yscale('log')
+    #   Label.
+    ax.set_xlabel(r'Model (training dataset size)', fontsize=12, labelpad=8)
+    ax.set_ylabel(r'$e_{p}$ in millimeters (log scale)', fontsize=12, labelpad=8)
     #   Set parameters of the visualization.
     ax.grid(which='major', linewidth = 0.15, linestyle = '--')
-    # Get handles and labels for the legend.
-    handles, labels = plt.gca().get_legend_handles_labels()
-    # Remove duplicate labels.
-    legend = dict(zip(labels, handles))
     # Show the labels (legends) of the graph.
-    ax.legend(legend.values(), legend.keys(), fontsize=10.0)
+    ax.legend(fontsize=10.0, loc='upper right')
+
+    # Save the figure.
+    if CONST_SAVE_FIGURE == True:
+        file_name = 'Error' if CONST_REFINE_ITERATIONS == 0 else 'Error_Refined'
+        figure.savefig(f'{project_folder}/images/{file_name}.png', dpi=150, bbox_inches='tight')
+        print(f'[INFO] >> file_path = {project_folder}/images/{file_name}.png')
 
     # Show the result.
     plt.show()

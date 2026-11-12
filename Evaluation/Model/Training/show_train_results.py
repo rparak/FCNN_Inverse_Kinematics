@@ -9,8 +9,6 @@ import os
 import scienceplots
 # Numpy (Array computing) [pip3 install numpy]
 import numpy as np
-# Integrate a system of ordinary differential equations (ODE) [pip3 install scipy]
-import scipy 
 # Matplotlib (Visualization) [pip3 install matplotlib]
 import matplotlib.pyplot as plt
 # Custom Lib.:
@@ -18,26 +16,35 @@ import matplotlib.pyplot as plt
 import Utilities.File_IO as File_IO
 #   ../Transformation/Utilities/Mathematics
 import Transformation.Utilities.Mathematics as Mathematics
+#   ../FCNN_IK/Model
+import FCNN_IK.Model
 
 """
 Description:
     Initialization of constants.
 """
-# A dataset configuration that specifies the amount of data 
+# A dataset configuration that specifies the amount of data
 # generated to train the model.
 CONST_NUM_OF_DATA = 1000
-# Matrices such as mean squared error (MSE), mean absolute 
-# error (MAE) and accuracy to be plotted.
-CONST_METRICES = [r'Accuracy', r'Mean Squared Error (MSE)', 
-                  r'Mean Absolute Error (MAE)']
+# Metrics such as loss, mean squared error (MSE) and mean absolute
+# error (MAE) to be plotted, and the column index of the training values.
+#   Note:
+#       The order of the columns is defined in ../src/FCNN_IK/Model.py -> CONST_HISTORY_KEYS
+#       ['loss', 'mse', 'mae', 'val_loss', 'val_mse', 'val_mae', 'learning_rate']
+CONST_METRICES = [(r'Loss', 0), (r'Mean Squared Error (MSE)', 1),
+                  (r'Mean Absolute Error (MAE)', 2)]
+# Save the figure to the file (*.png) for the README.
+#   Note:
+#       f'{project_folder}/images/Training/N_{CONST_NUM_OF_DATA}.png'
+CONST_SAVE_FIGURE = False
 
 def main():
     """
     Description:
-        A program to show result data from training a dataset. Metrics such as Mean Squared Error, Accuracy, 
-        Mean Absolute Error, etc. were used to evaluate the performance of the proposed network.
+        A program to show result data from training a dataset. Metrics such as Loss, Mean Squared Error, Mean Absolute
+        Error and the learning rate were used to evaluate the performance of the proposed network.
     """
-        
+
     # Locate the path to the project folder.
     project_folder = os.getcwd().split('FCNN_Inverse_Kinematics')[0] + 'FCNN_Inverse_Kinematics'
 
@@ -46,52 +53,59 @@ def main():
 
     # Read data from the file {*.txt}.
     data = File_IO.Load(f'{file_path_r}_History', 'txt', ',')
-    # Get the index with the best loss (val_mse) selected by the trainer.
-    (id, _) = Mathematics.Min(data[:, 6])
+    # Get the index with the best loss (val_loss) selected by the trainer.
+    (id, _) = Mathematics.Min(data[:, FCNN_IK.Model.CONST_HISTORY_KEYS.index('val_loss')])
 
     # Display the results as the values shown in the console.
     print('[INFO] Evaluation Criteria: Fully-Connected Neural Network (FCNN)')
     print(f'[INFO] The name of the dataset: Config_N_{CONST_NUM_OF_DATA}')
+    print(f'[INFO] Number of epochs: {data.shape[0]}')
     print(f'[INFO] The best results were found in the {id} iteration.')
-    print('[INFO]  Accuracy:')
-    print(f'[INFO]  [train = {data[id, 1]:.08f}, valid = {data[id, 5]:.08f}]')
-    print('[INFO]  Mean Squared Error (MSE):')
-    print(f'[INFO]  [train = {data[id, 2]:.08f}, valid = {data[id, 6]:.08f}]')
-    print('[INFO]  Mean Absolute Error (MAE):')
-    print(f'[INFO]  [train = {data[id, 3]:.08f}, valid = {data[id, 7]:.08f}]')   
-    
+    for _, (metric_i, idx_i) in enumerate(CONST_METRICES):
+        print(f'[INFO]  {metric_i}:')
+        print(f'[INFO]  [train = {data[id, idx_i]:.08f}, valid = {data[id, idx_i + 3]:.08f}]')
+    print(f'[INFO]  Learning rate: {data[id, 6]:.3e}')
+
     # Set the parameters for the scientific style.
     plt.style.use('science')
 
-    # Create a figure with 3 subplots.
-    fig, ax = plt.subplots(1, 3)
-    fig.suptitle(f'Training Results for the Dataset Containing {CONST_NUM_OF_DATA} Data Points', fontsize=45, y=0.925)
+    # Create a figure with 4 subplots.
+    fig, ax = plt.subplots(1, 4, figsize=(24, 6))
+    fig.suptitle(f'Training Results for the Dataset Containing {CONST_NUM_OF_DATA} Data Points', fontsize=25)
 
-    t = np.arange(0, len(data[:, 0]), 100)
-    for i, mectric_i in enumerate(CONST_METRICES):
-        # Interpolate a 1-D function.
-        f_1 = scipy.interpolate.interp1d(np.arange(0,len(data[:, 0])), data[:, i + 1])
-        f_2 = scipy.interpolate.interp1d(np.arange(0,len(data[:, 0])), data[:, i + 5])
-
-        # Approximation of the function: y = f(x).
-        y_1 = f_1(t)
-        y_2 = f_2(t)
-
+    # Subsample the epochs to approximately 1000 points.
+    t = np.arange(0, data.shape[0], max(1, data.shape[0] // 1000))
+    for i, (metric_i, idx_i) in enumerate(CONST_METRICES):
         # Visualization of relevant structures.
-        ax[i].plot(t, y_1, '-', color=[0.525,0.635,0.8,0.5], linewidth=1.0, label='train')
-        ax[i].plot(t, y_2, '-', color=[1.0,0.75,0.5,0.5], linewidth=1.0, label='valid')
+        ax[i].plot(t, data[t, idx_i], '-', color=[0.525,0.635,0.8,1.0], linewidth=1.0, label='train')
+        ax[i].plot(t, data[t, idx_i + 3], '-', color=[1.0,0.75,0.5,1.0], linewidth=1.0, label='valid')
+        ax[i].axvline(id, color='#8d8d8d', linestyle='--', linewidth=1.0, label='best')
 
         # Set parameters of the graph (plot).
+        ax[i].set_yscale('log')
         #   Label.
-        ax[i].set_xlabel(r'Epoch', fontsize=25, labelpad=10)
-        ax[i].set_ylabel(mectric_i, fontsize=25, labelpad=10) 
+        ax[i].set_xlabel(r'Epoch', fontsize=15, labelpad=10)
+        ax[i].set_ylabel(metric_i, fontsize=15, labelpad=10)
         #   Set parameters of the visualization.
         ax[i].grid(which='major', linewidth = 0.15, linestyle = '--')
         # Show the labels (legends) of the graph.
         ax[i].legend(fontsize=10.0)
 
+    # Visualization of the learning rate.
+    ax[3].plot(t, data[t, 6], '-', color='#674ea7', linewidth=1.0)
+    ax[3].set_yscale('log')
+    ax[3].set_xlabel(r'Epoch', fontsize=15, labelpad=10)
+    ax[3].set_ylabel(r'Learning Rate', fontsize=15, labelpad=10)
+    ax[3].grid(which='major', linewidth = 0.15, linestyle = '--')
+
+    # Save the figure.
+    if CONST_SAVE_FIGURE == True:
+        os.makedirs(f'{project_folder}/images/Training', exist_ok=True)
+        fig.savefig(f'{project_folder}/images/Training/N_{CONST_NUM_OF_DATA}.png', dpi=150, bbox_inches='tight')
+        print(f'[INFO] >> file_path = {project_folder}/images/Training/N_{CONST_NUM_OF_DATA}.png')
+
     # Show the result.
     plt.show()
-    
+
 if __name__ == '__main__':
     sys.exit(main())

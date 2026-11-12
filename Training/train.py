@@ -65,11 +65,15 @@ def main():
 
     # Train the Fully-Connected Neural Network (FCNN) model.
     #   1-2\ Initialization and Compilation.
+    #       Note:
+    #           The hyperparameters (incl. batch size, maximum number of epochs and patience 
+    #           values) are defined in ../Training/Hyperparameters/Utilities.py
+    Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure(CONST_NUM_OF_DATA)
     FCNN_IK_Trainer_Cls = FCNN_IK.Model.FCNN_Trainer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
-                                                         file_path=file_path_w)
-    FCNN_IK_Trainer_Cls.Compile(Hyperparameters.Utilities.Get_Hyperparameter_Structure(CONST_NUM_OF_DATA))
+                                                         file_path=file_path_w, Robot_Parameters_Str=Robot_Str)
+    FCNN_IK_Trainer_Cls.Compile(Hyperparameters_Str)
     #   3\ Train.
-    FCNN_IK_Trainer_Cls.Train(epochs=10000, batch_size=64)
+    FCNN_IK_Trainer_Cls.Train(epochs=Hyperparameters_Str['epochs'], batch_size=Hyperparameters_Str['batch_size'])
     #   4\ Save.
     FCNN_IK_Trainer_Cls.Save()
 

@@ -14,8 +14,8 @@ import matplotlib.pyplot as plt
 # Custom Lib.:
 #   ../Parameters/Robot
 import Parameters.Robot
-#   ../Lib/Utilities/File_IO
-import Utilities.File_IO as File_IO
+#   ../Utilities/Dataset
+import Utilities.Dataset as Dataset
 
 """
 Description:
@@ -24,7 +24,7 @@ Description:
 # Set the structure of the main parameters of the robot.
 CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 # Dataset configuration.
-#   Number of data to be generated.
+#   Number of data (samples) of the dataset to be visualized.
 CONST_NUM_OF_DATA = 1000
 
 def main():
@@ -50,14 +50,13 @@ def main():
     # Create a file path to read the data.
     file_path = f'{project_folder}/Data/Dataset/Config_N_{CONST_NUM_OF_DATA}'
     
-    # Read the data from a file.
-    data = File_IO.Load(file_path, 'pkl', ',')
-
-    # The tolerance of the data.
-    tolerance = 4
+    # Read the data from a file (*.zip).
+    #   Note:
+    #       f'{file_path}.zip' contains f'Config_N_{CONST_NUM_OF_DATA}.csv'
+    data = Dataset.Load(file_path).values
 
     # Express the data as x, y coordinates in meters.
-    x = np.round(data[:, 0], tolerance); y = np.round(data[:, 1], tolerance)
+    x = data[:, 0]; y = data[:, 1]
 
     # Create a figure.
     figure = plt.figure()

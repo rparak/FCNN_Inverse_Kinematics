@@ -1,4 +1,7 @@
-# Tested with Python 3.11.
+# Supported Python version: 3.12 (only).
+#   - Lower bound: scipy==1.18.1 requires Python >= 3.12 (pandas, scikit-learn, matplotlib, keras >= 3.11).
+#   - Upper bound: tensorflow==2.18.1 provides wheels for Python 3.9 - 3.12 only.
+#   All pinned versions below support Python 3.12 (tested with Python 3.12.16, macOS arm64, CPU).
 #
 # Note:
 #   Native Windows TensorFlow >= 2.11 is CPU-only. GPU training requires WSL2 (or Linux),

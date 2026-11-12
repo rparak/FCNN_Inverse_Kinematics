@@ -12,8 +12,6 @@ import joblib
 import sklearn.model_selection
 # KerasTuner (Hyperparameter optimization) [pip3 install keras-tuner]
 import keras_tuner as kt
-# Shutil (High-level file operations)
-import shutil
 # Logging (Logging facility for Python)
 import logging
 # Custom Lib.:
@@ -598,8 +596,9 @@ class FCNN_Optimizer_Cls(object):
                                          '../..')
             Features:
                 # Functions of the class.
-                Cls.Optimize(num_of_trials=100, epochs_per_trial=100, batch_size=64,
-                             early_stopping_patience=20, save_results=True)
+                Cls.Optimize(num_of_trials=30, epochs_per_trial=400, batch_size=128,
+                             early_stopping_patience=100, early_stopping_min_delta=0.01,
+                             lr_patience=20, lr_min_delta=0.001, save_results=True)
     """
 
     def __init__(self, x: tp.List[tp.Union[float, int]], y: tp.List[float], train_size: float, test_size: float,
@@ -719,11 +718,38 @@ class FCNN_Optimizer_Cls(object):
 
         return model
 
+    def __Print_Top_Trials(self, optimizer: kt.BayesianOptimization, num_of_top_trials: int) -> None:
+        """
+        Description:
+            A function to display the best trials of the optimization, ranked by the objective (val_loss),
+            together with the number of trainable parameters of each configuration.
+
+        Args:
+            (1) optimizer [kt.BayesianOptimization(object)]: The tuner after the search.
+            (2) num_of_top_trials [int]: The number of the best trials to be displayed.
+        """
+
+        print(f'[INFO] The top {num_of_top_trials} configurations (objective = val_loss, minimized):')
+        for i, trial_i in enumerate(optimizer.oracle.get_best_trials(num_trials=num_of_top_trials)):
+            hps_i = trial_i.hyperparameters.values
+            units_i = [hps_i[f'hidden_layer_{j + 1}_units'] for j in range(hps_i['num_of_hidden_layers'])]
+            # Build the model of the trial to count its parameters.
+            num_of_parameters = optimizer.hypermodel.build(trial_i.hyperparameters).count_params()
+            print(f'[INFO]  {i + 1}. val_loss = {trial_i.score:.6e} | parameters = {num_of_parameters:7d} | '
+                  f'units = {units_i} | activation = {hps_i["activation"]} | dropout = {hps_i["layer_dropout"]} | '
+                  f'learning_rate = {hps_i["learning_rate"]} | best epoch = {trial_i.best_step + 1}')
+
     def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, early_stopping_patience: int,
-                 save_results: bool) -> None:
+                 early_stopping_min_delta: float, lr_patience: int, lr_min_delta: float, save_results: bool,
+                 num_of_top_trials: int = 5) -> None:
         """
         Description:
             A function to optimize the Fully-Connected Neural Network (FCNN) model.
+
+            Note:
+                The trials use the same callbacks as the training (FCNN_Trainer_Cls.Train()), i.e. early stopping
+                and the reduction of the learning rate (factor 0.5, min. 1e-6) with relative improvement thresholds,
+                only with shorter patience values. The tuner always starts a new search (overwrite=True).
 
         Args:
             (1) num_of_trials [int]: The number of trials to be used in hyperparameter optimization.
@@ -731,24 +757,37 @@ class FCNN_Optimizer_Cls(object):
             (3) batch_size [int]: The number of samples processed before the model is updated.
             (4) early_stopping_patience [int]: The number of epochs without improvement of 'val_loss' after
                                                which the trial is stopped.
-            (5) save_results [bool]: Information about whether the optimization results will be saved.
+            (5) early_stopping_min_delta [float]: The minimum relative improvement of 'val_loss' for early stopping.
+            (6) lr_patience [int]: The number of epochs without improvement of 'val_loss' after which the learning
+                                   rate is reduced by a factor of 0.5.
+            (7) lr_min_delta [float]: The minimum relative improvement of 'val_loss' for the learning-rate reduction.
+            (8) save_results [bool]: Information about whether the optimization results will be saved.
+            (9) num_of_top_trials [int]: The number of the best configurations to be displayed.
         """
 
-        # Remove the unnecessary directory.
+        # The directory of the tuner (removed and re-created by overwrite=True).
         directory_path = f'{CONST_PROJECT_FOLDER}/Training/FCNN_Inverse_Kinematics_Optimizer'
-        if os.path.isdir(directory_path):
-            shutil.rmtree(directory_path)
 
         # Bayesian optimization with Gaussian process over the desired hyperparameters.
         optimizer = kt.BayesianOptimization(hypermodel=self.__Compile, objective=kt.Objective(name='val_loss', direction='min'),
                                             max_trials=num_of_trials, seed=CONST_SEED, directory=directory_path,
-                                            project_name='FCNN_Inverse_Kinematics')
+                                            project_name='FCNN_Inverse_Kinematics', overwrite=True)
+
+        # The callbacks of each trial (the same as in the training, see FCNN_Trainer_Cls.Train()).
+        #   Note:
+        #       KerasTuner makes a deep copy of the callbacks for each trial, so their state is reset.
+        callbacks = [Relative_Early_Stopping_Cls(monitor='val_loss', patience=early_stopping_patience,
+                                                 min_delta=early_stopping_min_delta, restore_best_weights=True),
+                     Relative_Reduce_LR_On_Plateau_Cls(monitor='val_loss', factor=0.5, patience=lr_patience,
+                                                       min_delta=lr_min_delta, min_lr=1e-6)]
 
         # Start the search for the most suitable model.
         optimizer.search(self.__x_train_scaled, self.__y_train_scaled, epochs=epochs_per_trial, batch_size=batch_size,
                          validation_data=(self.__x_validation_scaled, self.__y_validation_scaled),
-                         callbacks=[tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=early_stopping_patience,
-                                                                     restore_best_weights=True)])
+                         callbacks=callbacks)
+
+        # Display the best configurations.
+        self.__Print_Top_Trials(optimizer, num_of_top_trials)
 
         # Get the best hyperparameters determined by the objective function.
         #   objective = 'val_loss' (minimized)

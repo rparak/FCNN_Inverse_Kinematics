@@ -34,12 +34,20 @@ CONST_ROBOT_TYPE = Parameters.Robot.EPSON_LS3_B401S_Str
 #       hyperparameter structure used for all dataset sizes, see ../Training/Hyperparameters/Utilities.py
 CONST_NUM_OF_DATA = 10000
 # Optimization configuration.
+#   Note:
+#       The trials use the same callbacks as the training (relative early stopping and relative
+#       reduction of the learning rate, with the same relative thresholds 'early_stopping_min_delta'
+#       and 'lr_min_delta'), only with shorter patience values and a limited number of epochs.
 #   The number of trials.
-CONST_NUM_OF_TRIALS = 100
+CONST_NUM_OF_TRIALS = 30
 #   The maximum number of epochs per trial.
-CONST_EPOCHS_PER_TRIAL = 100
+CONST_EPOCHS_PER_TRIAL = 400
 #   The number of epochs without improvement of 'val_loss' after which the trial is stopped.
-CONST_EARLY_STOPPING_PATIENCE = 20
+CONST_EARLY_STOPPING_PATIENCE = 100
+#   The number of epochs without improvement of 'val_loss' after which the learning rate is reduced.
+CONST_LR_PATIENCE = 20
+#   The number of the best configurations to be displayed.
+CONST_NUM_OF_TOP_TRIALS = 5
 
 def main():
     """
@@ -76,8 +84,8 @@ def main():
     #       'th_0', 'th_1': Absolute position of the robot's joints.
     x = data.iloc[:, 0:(Robot_Str.Theta.Zero.size + 1)].values; y = data.iloc[:, -Robot_Str.Theta.Zero.size:].values
     
-    # The batch size is taken from the hyperparameter structure, so the optimization uses the
-    # same setting as the training.
+    # The batch size and the relative improvement thresholds of the callbacks are taken from the
+    # hyperparameter structure, so the optimization uses the same settings as the training.
     Hyperparameters_Str = Hyperparameters.Utilities.Get_Hyperparameter_Structure()
 
     # Optimization of the hyperparameters for the Fully-Connected Neural Network (FCNN).
@@ -85,8 +93,10 @@ def main():
     FCNN_IK_Optimizer_Cls = FCNN_IK.Model.FCNN_Optimizer_Cls(x=x, y=y, train_size=0.80, test_size=0.20, 
                                                              file_path=file_path_w)
     #   2\ Optimization.
-    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=Hyperparameters_Str['batch_size'], 
-                                   early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, save_results=True)
+    FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=Hyperparameters_Str['batch_size'],
+                                   early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, early_stopping_min_delta=Hyperparameters_Str['early_stopping_min_delta'],
+                                   lr_patience=CONST_LR_PATIENCE, lr_min_delta=Hyperparameters_Str['lr_min_delta'], save_results=True,
+                                   num_of_top_trials=CONST_NUM_OF_TOP_TRIALS)
 
 if __name__ == "__main__":
     sys.exit(main())

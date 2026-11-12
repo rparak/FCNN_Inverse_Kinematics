@@ -40,6 +40,9 @@ CONST_NUM_OF_DATA = 10000
 #       and 'lr_min_delta'), only with shorter patience values and a limited number of epochs.
 #   The number of trials.
 CONST_NUM_OF_TRIALS = 30
+#   The number of randomly sampled trials before the Bayesian optimization starts
+#   (the remaining trials are selected by the Gaussian process).
+CONST_NUM_OF_INITIAL_POINTS = 10
 #   The maximum number of epochs per trial.
 CONST_EPOCHS_PER_TRIAL = 400
 #   The number of epochs without improvement of 'val_loss' after which the trial is stopped.
@@ -95,8 +98,8 @@ def main():
     #   2\ Optimization.
     FCNN_IK_Optimizer_Cls.Optimize(num_of_trials=CONST_NUM_OF_TRIALS, epochs_per_trial=CONST_EPOCHS_PER_TRIAL, batch_size=Hyperparameters_Str['batch_size'],
                                    early_stopping_patience=CONST_EARLY_STOPPING_PATIENCE, early_stopping_min_delta=Hyperparameters_Str['early_stopping_min_delta'],
-                                   lr_patience=CONST_LR_PATIENCE, lr_min_delta=Hyperparameters_Str['lr_min_delta'], save_results=True,
-                                   num_of_top_trials=CONST_NUM_OF_TOP_TRIALS)
+                                   lr_patience=CONST_LR_PATIENCE, lr_min_delta=Hyperparameters_Str['lr_min_delta'],
+                                   num_of_initial_points=CONST_NUM_OF_INITIAL_POINTS, save_results=True, num_of_top_trials=CONST_NUM_OF_TOP_TRIALS)
 
 if __name__ == "__main__":
     sys.exit(main())

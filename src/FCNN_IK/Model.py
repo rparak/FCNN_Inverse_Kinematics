@@ -598,7 +598,8 @@ class FCNN_Optimizer_Cls(object):
                 # Functions of the class.
                 Cls.Optimize(num_of_trials=30, epochs_per_trial=400, batch_size=128,
                              early_stopping_patience=100, early_stopping_min_delta=0.01,
-                             lr_patience=20, lr_min_delta=0.001, save_results=True)
+                             lr_patience=20, lr_min_delta=0.001, num_of_initial_points=10,
+                             save_results=True)
     """
 
     def __init__(self, x: tp.List[tp.Union[float, int]], y: tp.List[float], train_size: float, test_size: float,
@@ -740,8 +741,8 @@ class FCNN_Optimizer_Cls(object):
                   f'learning_rate = {hps_i["learning_rate"]} | best epoch = {trial_i.best_step + 1}')
 
     def Optimize(self, num_of_trials: int, epochs_per_trial: int, batch_size: int, early_stopping_patience: int,
-                 early_stopping_min_delta: float, lr_patience: int, lr_min_delta: float, save_results: bool,
-                 num_of_top_trials: int = 5) -> None:
+                 early_stopping_min_delta: float, lr_patience: int, lr_min_delta: float, num_of_initial_points: int,
+                 save_results: bool, num_of_top_trials: int = 5) -> None:
         """
         Description:
             A function to optimize the Fully-Connected Neural Network (FCNN) model.
@@ -761,8 +762,12 @@ class FCNN_Optimizer_Cls(object):
             (6) lr_patience [int]: The number of epochs without improvement of 'val_loss' after which the learning
                                    rate is reduced by a factor of 0.5.
             (7) lr_min_delta [float]: The minimum relative improvement of 'val_loss' for the learning-rate reduction.
-            (8) save_results [bool]: Information about whether the optimization results will be saved.
-            (9) num_of_top_trials [int]: The number of the best configurations to be displayed.
+            (8) num_of_initial_points [int]: The number of randomly sampled trials before the Bayesian optimization
+                                             (Gaussian process) starts to select the configurations.
+                                                Note:
+                                                    The KerasTuner default is 3 * (number of hyperparameters).
+            (9) save_results [bool]: Information about whether the optimization results will be saved.
+            (10) num_of_top_trials [int]: The number of the best configurations to be displayed.
         """
 
         # The directory of the tuner (removed and re-created by overwrite=True).
@@ -770,8 +775,8 @@ class FCNN_Optimizer_Cls(object):
 
         # Bayesian optimization with Gaussian process over the desired hyperparameters.
         optimizer = kt.BayesianOptimization(hypermodel=self.__Compile, objective=kt.Objective(name='val_loss', direction='min'),
-                                            max_trials=num_of_trials, seed=CONST_SEED, directory=directory_path,
-                                            project_name='FCNN_Inverse_Kinematics', overwrite=True)
+                                            max_trials=num_of_trials, num_initial_points=num_of_initial_points, seed=CONST_SEED,
+                                            directory=directory_path, project_name='FCNN_Inverse_Kinematics', overwrite=True)
 
         # The callbacks of each trial (the same as in the training, see FCNN_Trainer_Cls.Train()).
         #   Note:

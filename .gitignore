@@ -10,3 +10,6 @@ __pycache__/
 
 # KerasTuner search directory (Training/optimize.py)
 Training/FCNN_Inverse_Kinematics_Optimizer/
+
+# Training logs
+*.log
